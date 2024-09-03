@@ -120,9 +120,12 @@ const SignIn = () => {
             <Text className="text-white text-center ">
               Don't have an account?
             </Text>
-            <Link className="text-red ml-1 " href="/sign-up">
-              Sign up
-            </Link>
+            <TouchableOpacity
+              onPress={() => router.replace("/sign-up")}
+              
+            >
+              <Text className="text-red ml-1">Sign up</Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
