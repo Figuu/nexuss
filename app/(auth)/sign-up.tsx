@@ -7,22 +7,24 @@ import { router } from "expo-router";
 const SignUp = () => {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const { onRegister } = useAuth();
+  const [confirmPassword, setConfirmPassword] = useState("")
+  const { onLogin, onRegister } = useAuth();
+  
 
   const handleRegister = async () => {
-    if (password !== confirmPassword) {
+    if (password != confirmPassword) {
       alert("Las contraseñas no coinciden");
       return;
     }
 
     if (username !== "" && password !== "") {
       try {
-        const result = await onRegister(username, password);
+        const result = await onRegister(username, password, username, "default");
 
         if (result?.error) {
           alert(result.message);
         } else {
+          await onLogin(username, password);
           router.replace("/home");
         }
       } catch (error) {
@@ -33,6 +35,20 @@ const SignUp = () => {
       alert("Usuario o contraseña vacíos");
     }
   };
+
+  // const handleGoogleLogin = async (authentication) => {
+  //   try {
+  //     // Aquí puedes enviar el token de ID de Google al backend para crear o autenticar al usuario
+  //     const result = await onRegisterWithGoogle(authentication.accessToken);
+  //     if (result?.error) {
+  //       alert(result.message);
+  //     } else {
+  //       router.replace("/home");
+  //     }
+  //   } catch (error) {
+  //     console.error("Google Login error:", error);
+  //   }
+  // };
 
   return (
     <View className="flex-1 bg-gray justify-center items-center p-4">

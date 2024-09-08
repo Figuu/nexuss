@@ -13,13 +13,20 @@ const Event = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-gray p-4">
-      <Image
-        source={images.dummy2} // Reemplaza dummyEvent con la imagen correcta del evento
-        resizeMode="cover"
-        className="w-full h-72 rounded-xl"
-      />
-      <View className="mt-4">
-        <Text className="text-white text-3xl font-semibold">
+      <View className="w-[100vw] -mx-4 -mt-16">
+        <Image
+          source={images.dummy2} // Reemplaza dummyEvent con la imagen correcta del evento
+          resizeMode="cover"
+          className="w-full h-[45vh]"
+        />
+        <Image
+          source={images.gradient}
+          resizeMode="cover"
+          className="w-full h-[45vh] absolute top-0"
+        />
+      </View>
+      <View className="mt-2">
+        <Text className="text-white text-3xl font-sbold">
           Brightlight Music Festival
         </Text>
         <View className="mt-2">
@@ -32,7 +39,7 @@ const Event = () => {
         </View>
       </View>
       <TouchableOpacity
-        className="bg-red-500 mt-8 p-4 rounded-xl"
+        className="bg-red-500 mx-4 mt-8 p-4 absolute w-full rounded-xl bottom-8"
         onPress={handleBuyTickets}
       >
         <Text className="text-white text-center text-lg">Buy tickets</Text>

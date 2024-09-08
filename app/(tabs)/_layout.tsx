@@ -1,10 +1,11 @@
-import { Tabs } from "expo-router";
+import { Stack, Tabs } from "expo-router";
 import React from "react";
 
 import { Image, Text, View } from "react-native";
 import { useColorScheme } from "../../hooks/useColorScheme";
 import { Colors } from "../../constants/Colors";
 import { TabBarIcon } from "../../components/navigation/TabBarIcon";
+import { FontAwesome6 } from "@expo/vector-icons";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -27,8 +28,9 @@ export default function TabLayout() {
           options={{
             title: "Home",
             tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon
-                name={focused ? "FaTicketSimple" : "ticket-simple"}
+              <FontAwesome6
+                name={focused ? "house" : "house"}
+                size={28}
                 color={color}
               />
             ),
@@ -39,7 +41,11 @@ export default function TabLayout() {
           options={{
             title: "Explore",
             tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? "ticket" : "ticket"} color={color} />
+              <FontAwesome6
+                name={focused ? "magnifying-glass" : "magnifying-glass"}
+                size={28}
+                color={color}
+              />
             ),
           }}
         />
@@ -48,7 +54,11 @@ export default function TabLayout() {
           options={{
             title: "Tickets",
             tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? "ticket" : "ticket"} color={color} />
+              <FontAwesome6
+                name={focused ? "ticket" : "ticket"}
+                size={28}
+                color={color}
+              />
             ),
           }}
         />
@@ -57,7 +67,11 @@ export default function TabLayout() {
           options={{
             title: "Profile",
             tabBarIcon: ({ color, focused }) => (
-              <TabBarIcon name={focused ? "user" : "user"} color={color} />
+              <FontAwesome6
+                name={focused ? "user-large" : "user-large"}
+                size={28}
+                color={color}
+              />
             ),
           }}
         />

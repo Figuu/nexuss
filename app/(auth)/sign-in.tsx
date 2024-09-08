@@ -29,19 +29,6 @@ const SignIn = () => {
     }
   };
 
-  const handleRegister = async () => {
-    try {
-      const result = await onRegister(username, password);
-      if (result?.error) {
-        alert(result.message);
-      } else {
-        handleLogin();
-      }
-    } catch (error) {
-      console.error("Register error:", error);
-    }
-  };
-
   return (
     <View className="flex-1 bg-gray justify-center items-center p-4">
       <View className="w-full max-w-sm">
@@ -86,7 +73,6 @@ const SignIn = () => {
             className="bg-red rounded-lg py-3 px-4 mb-6"
           >
             <Text
-              style={{ fontFamily: "LeagueSpartan_400Regular" }}
               className="text-white text-center text-lg font-medium"
             >
               Sign in
@@ -95,7 +81,6 @@ const SignIn = () => {
 
           <TouchableOpacity>
             <Text
-              style={{ fontFamily: "LeagueSpartan_700Bold" }}
               className="text-red text-center mb-6"
             >
               Forgot the password?

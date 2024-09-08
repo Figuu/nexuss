@@ -15,7 +15,7 @@ interface AuthState {
 
 interface AuthProps {
   authState: AuthState;
-  onRegister: (username: string, password: string) => Promise<any>;
+  onRegister: (username: string, password: string, name: string, auth_method: string) => Promise<any>;
   onLogin: (username: string, password: string) => Promise<any>;
   onLogout: () => Promise<void>;
 }
@@ -47,40 +47,67 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     loadToken();
   }, []);
 
-  const register = useCallback(async (username: string, password: string) => {
-    try {
-      return await axios.post(`${API_URL}/register`, { username, password });
-    } catch (error) {
-      return { error: true, message: (error as any).response.data.message };
-    }
-  }, []);
+  const register = useCallback(
+    async (
+      username: string,
+      password: string,
+      name: string,
+      auth_method: string,
+      
+    ) => {
+      try {
+        return await axios.post(`${API_URL}/auth/register-user`, {
+          username,
+          password,
+          name,
+          auth_method,
+          status_id: 1,
+          is_owner : false,
+          is_seller: false,
+          country_code: "591",
+          phone: "12121212",
+          roles: []
+        });
+      } catch (error) {
+        return { error: true, message: (error as any).response.data.message };
+      }
+    },
+    []
+  );
 
   const login = useCallback(async (username: string, password: string) => {
     try {
-      const result = await axios.post(`${API_URL}/auth/login`, { username, password });
-  
+      const result = await axios.post(`${API_URL}/auth/login`, {
+        username,
+        password,
+      });
+
       // Verificar si la respuesta tiene el token
       if (result.data && result.data.token) {
         const token = result.data.token;
-  
+
         setAuthState({
           token,
           authenticated: true,
         });
-  
+
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         await SecureStore.setItemAsync(TOKEN_KEY, token);
-  
+
         return result;
       } else {
         throw new Error("Usuario o contraseña incorrectos");
       }
     } catch (error) {
       // Devolver un objeto de error que será manejado por el componente que llama a esta función
-      return { error: true, message: (error as any).response ? (error as any).response.data.message : (error as any).message };
+      return {
+        error: true,
+        message: (error as any).response
+          ? (error as any).response.data.message
+          : (error as any).message,
+      };
     }
   }, []);
-  
 
   const logout = useCallback(async () => {
     await SecureStore.deleteItemAsync(TOKEN_KEY);

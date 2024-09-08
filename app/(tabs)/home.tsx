@@ -1,5 +1,5 @@
 import { View, Text, Image, ScrollView, TouchableOpacity } from "react-native";
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL } from "../context/AuthContext";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -7,12 +7,15 @@ import { images } from "../../constants";
 import { router } from "expo-router";
 
 const Home = () => {
+  const [events, setEvents] = useState([]);
   useEffect(() => {
     let isMounted = true;
 
     const testCall = async () => {
       try {
-        const result = await axios.get(`${API_URL}/user`);
+        const result = (await axios.get(`${API_URL}/event`, { status_id: 1 }));
+        setEvents(result.data);
+        console.log("Home data:", events);
         if (isMounted) {
           // console.log("Home data:", result.data);
         }
@@ -29,8 +32,8 @@ const Home = () => {
   }, []);
 
   const toEvent = () => {
-    router.push("event/1")
-  }
+    router.push("event/1");
+  };
 
   return (
     <SafeAreaView className="bg-gray h-full px-4">
