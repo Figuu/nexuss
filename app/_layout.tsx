@@ -63,6 +63,7 @@ const RootLayout = () => {
         <Stack.Screen name="(auth)" options={{ headerShown: false }} />
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="event/[id]" options={{ headerShown: false }} />
+        <Stack.Screen name="portal/[id]" options={{ headerShown: false }} />
       </Stack>
     </AuthProvider>
   );

@@ -13,7 +13,12 @@ const Home = () => {
 
     const testCall = async () => {
       try {
-        const result = (await axios.get(`${API_URL}/event`, { status_id: 1 }));
+        const result = await axios.get(`${API_URL}/event`, {
+          params: {
+            status_id: 1,
+          },
+        });
+        // console.log("consulta:", result.data);
         setEvents(result.data);
         console.log("Home data:", events);
         if (isMounted) {
@@ -35,12 +40,16 @@ const Home = () => {
     router.push("event/1");
   };
 
+  const toPortal = () => {
+    router.push("portal/1");
+  };
+
   return (
     <SafeAreaView className="bg-gray h-full px-4">
       <ScrollView>
         <View className="w-full flex justify-start mb-3">
-          <Text className="text-4xl text-start text-white font-sbold">
-            KayTik
+          <Text className="text-4xl text-start text-white font-sblack">
+            MiTix
           </Text>
         </View>
         <View className="mb-4">
@@ -87,6 +96,12 @@ const Home = () => {
               />
             </View>
           </ScrollView>
+          <TouchableOpacity
+            className="h-[200px] aspect-square bg-white rounded-xl mr-4"
+            onPress={toPortal}
+          >
+            <Text>Portal</Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
