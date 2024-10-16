@@ -22,7 +22,7 @@ const Tickets = () => {
   );
 
   return (
-    <SafeAreaView className="flex-1 bg-gray">
+    <SafeAreaView className="h-full flex-1 bg-gray">
       <View className="px-4 mt-4">
         <FlatList
           data={ticketsData}

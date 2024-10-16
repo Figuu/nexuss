@@ -18,8 +18,8 @@ module.exports = {
         },
         black: {
           DEFAULT: "#000",
-          100: "#1E1E2D",
-          200: "#232533",
+          100: "#121212",
+          200: "#1e1e1e",
         },
       },
       fontFamily: {

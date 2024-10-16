@@ -12,7 +12,7 @@ export default function App() {
     <SafeAreaView className="bg-gray h-full">
       <ScrollView contentContainerStyle={{ height: "100%" }}>
         <View className="w-full justify-center items-center min-h-[85vh] px-4">
-          <Text className="font-sblack text-6xl text-white">KayTix</Text>
+          <Text className="font-sblack text-6xl text-white">MiTix</Text>
           <Image
             source={images.example}
             resizeMode="contain"

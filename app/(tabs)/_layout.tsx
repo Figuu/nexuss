@@ -4,7 +4,6 @@ import React from "react";
 import { Image, Text, View } from "react-native";
 import { useColorScheme } from "../../hooks/useColorScheme";
 import { Colors } from "../../constants/Colors";
-import { TabBarIcon } from "../../components/navigation/TabBarIcon";
 import { FontAwesome6 } from "@expo/vector-icons";
 
 export default function TabLayout() {
@@ -27,6 +26,10 @@ export default function TabLayout() {
           name="home"
           options={{
             title: "Home",
+            tabBarLabelStyle: {
+              fontWeight: "bold",
+              fontSize: 11,
+            },
             tabBarIcon: ({ color, focused }) => (
               <FontAwesome6
                 name={focused ? "house" : "house"}
@@ -40,6 +43,10 @@ export default function TabLayout() {
           name="explore"
           options={{
             title: "Explore",
+            tabBarLabelStyle: {
+              fontWeight: "bold",
+              fontSize: 11,
+            },
             tabBarIcon: ({ color, focused }) => (
               <FontAwesome6
                 name={focused ? "magnifying-glass" : "magnifying-glass"}
@@ -53,6 +60,10 @@ export default function TabLayout() {
           name="tickets"
           options={{
             title: "Tickets",
+            tabBarLabelStyle: {
+              fontWeight: "bold",
+              fontSize: 11,
+            },
             tabBarIcon: ({ color, focused }) => (
               <FontAwesome6
                 name={focused ? "ticket" : "ticket"}
@@ -66,6 +77,10 @@ export default function TabLayout() {
           name="profile"
           options={{
             title: "Profile",
+            tabBarLabelStyle: {
+              fontWeight: "bold",
+              fontSize: 11,
+            },
             tabBarIcon: ({ color, focused }) => (
               <FontAwesome6
                 name={focused ? "user-large" : "user-large"}

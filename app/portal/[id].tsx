@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { View, Text, Image, TouchableOpacity } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
+import { router, useRouter } from "expo-router";
 import { images } from "../../constants";
 import axios from "axios";
 import { API_URL } from "../context/AuthContext";
@@ -96,7 +96,7 @@ const Portal = () => {
             <FontAwesome6 name="tiktok" size={24} color="white" />
             <FontAwesome6 name="spotify" size={24} color="white" />
           </View>
-          <TouchableOpacity className="mt-8 rounded-2xl bg-white p-2 h-12 items-center justify-center">
+          <TouchableOpacity onPress={()=> router.push("portal/1/events") } className="mt-8 rounded-2xl bg-white p-2 h-12 items-center justify-center">
             <Text className="text-center font-sbold text-lg">
               Comprar entradas
             </Text>

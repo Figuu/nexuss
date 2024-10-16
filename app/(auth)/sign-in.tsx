@@ -37,7 +37,7 @@ const SignIn = () => {
         </Text>
 
         <View className="mb-4">
-          <View className="bg-gray-200 flex-row items-center p-3 rounded-lg mb-4">
+          <View className="bg-gray-200 flex-row items-center p-3 rounded-xl mb-4">
             <FontAwesome
               name="envelope"
               size={20}
@@ -52,7 +52,7 @@ const SignIn = () => {
             />
           </View>
 
-          <View className="bg-gray-200 flex-row items-center p-3 rounded-lg mb-6">
+          <View className="bg-gray-200 flex-row items-center p-3 rounded-xl mb-6">
             <FontAwesome
               name="lock"
               size={23}
@@ -70,7 +70,7 @@ const SignIn = () => {
 
           <TouchableOpacity
             onPress={handleLogin}
-            className="bg-red rounded-lg py-3 px-4 mb-6"
+            className="bg-red rounded-xl py-3 px-4 mb-6"
           >
             <Text
               className="text-white text-center text-lg font-medium"
