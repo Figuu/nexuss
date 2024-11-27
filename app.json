@@ -21,6 +21,7 @@
     },
     "android": {
       "package": "com.MiTix.app",
+      "newArchEnabled": true,
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#242424"

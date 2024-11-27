@@ -20,7 +20,9 @@ interface AuthProps {
   onLogout: () => Promise<void>;
 }
 
+
 const TOKEN_KEY = "token";
+const REFRESH_TOKEN_KEY = "refreshToken";
 export const API_URL = "http://104.152.50.154:3002/api";
 const AuthContext = createContext<AuthProps | undefined>(undefined);
 
@@ -36,16 +38,46 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     authenticated: false,
   });
 
+  const loadTokens = async () => {
+    const token = await SecureStore.getItemAsync(TOKEN_KEY);
+    const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+    if (token) {
+      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+      setAuthState({ token, authenticated: true });
+    } else if (refreshToken) {
+      await refreshTokens(refreshToken);
+    }
+  };
+
   useEffect(() => {
-    const loadToken = async () => {
-      const token = await SecureStore.getItemAsync(TOKEN_KEY);
-      if (token) {
-        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        setAuthState({ token, authenticated: true });
-      }
-    };
-    loadToken();
+    loadTokens();
   }, []);
+
+  const refreshTokens = async (refreshToken: string) => {
+    try {
+      const response = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
+      const { token: newToken, refreshToken: newRefreshToken } = response.data;
+      
+      setAuthState({ token: newToken, authenticated: true });
+      axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+      await SecureStore.setItemAsync(TOKEN_KEY, newToken);
+      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, newRefreshToken);
+    } catch (error) {
+      console.error("Failed to refresh tokens:", error);
+      await logout();
+    }
+  };
+
+  // useEffect(() => {
+  //   const loadToken = async () => {
+  //     const token = await SecureStore.getItemAsync(TOKEN_KEY);
+  //     if (token) {
+  //       axios.defaults.headers.common["Authorization"] = Bearer ${token};
+  //       setAuthState({ token, authenticated: true });
+  //     }
+  //   };
+  //   loadToken();
+  // }, []);
 
   const register = useCallback(
     async (
@@ -83,8 +115,8 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       });
 
       // Verificar si la respuesta tiene el token
-      if (result.data && result.data.token) {
-        const token = result.data.token;
+      if (result.data && result.data.token && result.data.refreshToken) {
+        const { token, refreshToken } = result.data;
 
         setAuthState({
           token,
@@ -93,6 +125,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         await SecureStore.setItemAsync(TOKEN_KEY, token);
+        await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
 
         return result;
       } else {
@@ -111,6 +144,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = useCallback(async () => {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
+    await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
     axios.defaults.headers.common["Authorization"] = "";
     setAuthState({ token: null, authenticated: false });
   }, []);
@@ -124,102 +158,3 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
-
-// import { createContext, useContext, useEffect, useState } from "react";
-// import axios from "axios";
-// import * as SecureStore from "expo-secure-store";
-
-// interface AuthProps {
-//   authState?: { token: string | null; authenticated: boolean | null };
-//   onRegister?: (email: string, password: string) => Promise<any>;
-//   onLogin?: (username: string, password: string) => Promise<any>;
-//   onLogout?: () => Promise<any>;
-// }
-
-// const TOKEN_KEY = "token";
-// export const API_URL = "http://104.152.50.154:3002/api";
-// const AuthContext = createContext<AuthProps>({});
-
-// export const useAuth = () => {
-//   return useContext(AuthContext);
-// };
-
-// export const AuthProvider = ({ children }: any) => {
-//   const [authState, setAuthState] = useState<{
-//     token: string | null;
-//     authenticated: boolean | null;
-//   }>({
-//     token: null,
-//     authenticated: null,
-//   });
-
-//   useEffect(() => {
-//     const loadToken = async () => {
-//       const token = await SecureStore.getItemAsync(TOKEN_KEY);
-
-//       console.log("stored", token);
-
-//       if (token) {
-//         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-
-//         setAuthState({
-//           token,
-//           authenticated: true,
-//         });
-//       }
-//     };
-//     loadToken();
-//   }, []);
-
-//   const register = async (email: string, password: string) => {
-//     try {
-//       return await axios.post(`${API_URL}/register`, { email, password });
-//     } catch (error) {
-//       return { error: true, message: (error as any).response.data.message };
-//     }
-//   };
-
-//   const login = async (username: string, password: string) => {
-//     try {
-//       const result = await axios.post(`${API_URL}/auth/login`, {
-//         username,
-//         password,
-//       });
-
-//       setAuthState({
-//         token: result.data.token,
-//         authenticated: true,
-//       });
-
-//       axios.defaults.headers.common[
-//         "Authorization"
-//       ] = `Bearer ${result.data.token}`;
-
-//       await SecureStore.setItemAsync(TOKEN_KEY, result.data.token);
-
-//       return result;
-//     } catch (error) {
-//       return { error: true, message: (error as any).response.data.message };
-//     }
-//   };
-
-//   const logout = async () => {
-//     await SecureStore.deleteItemAsync(TOKEN_KEY);
-
-//     axios.defaults.headers.common["Authorization"] = "";
-
-//     setAuthState({
-//       token: null,
-//       authenticated: false,
-//     });
-//   };
-
-//   const value = {
-//     onRegister: register,
-//     onLogin: login,
-//     onLogout: logout,
-//     authState,
-//   };
-
-//   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
-// };

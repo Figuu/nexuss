@@ -16,7 +16,7 @@ const EventCardLarge = ({ event }) => {
     >
       <View className="h-[120px] aspect-square bg-white rounded-xl mr-4">
         <Image
-          src={event.front_page_image}
+          src={event?.front_page_image}
           resizeMode="cover"
           className="w-full h-full rounded-xl"
         />

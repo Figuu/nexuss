@@ -41,7 +41,7 @@ const PortalEvents = () => {
   );
 
   if (loading) {
-    return <ActivityIndicator size="large" color="#0000ff" className="mt-10" />;
+    return <ActivityIndicator size={'large'} color="#ffffff" className="mt-10" />;
   }
 
   return (
