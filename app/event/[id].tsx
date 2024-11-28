@@ -26,12 +26,12 @@ interface EventType {
   longitude: string;
 }
 
-// interface ScheduleType {
-//   id: string;
-//   date: string;
-//   start_time: string;
-//   end_time: string;
-// }
+interface ScheduleType {
+  id: string;
+  date: string;
+  start_time: string;
+  end_time: string;
+}
 
 // interface TicketType {
 //   id: string;
@@ -48,7 +48,7 @@ const Event = () => {
   const [event, setEvent] = useState<EventType | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-  // const [schedule, setSchedule] = useState<ScheduleType[]>([]);
+  const [schedule, setSchedule] = useState<ScheduleType[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
   // const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
 
@@ -80,24 +80,24 @@ const Event = () => {
     }
   }, [id]);
 
-  // useEffect(() => {
-  //   const fetchEventSchedule = async () => {
-  //     try {
-  //       const response = await axios.get(API_URL + "/schedure", {
-  //         params: {
-  //           event_id: id,
-  //         },
-  //       });
-  //       setSchedule(response.data);
-  //     } catch (err) {
-  //       setError("Error al cargar el horario del evento");
-  //     }
-  //   };
+  useEffect(() => {
+    const fetchEventSchedule = async () => {
+      try {
+        const response = await axios.get(API_URL + "/schedure", {
+          params: {
+            event_id: id,
+          },
+        });
+        setSchedule(response.data);
+      } catch (err) {
+        setError("Error al cargar el horario del evento");
+      }
+    };
 
-  //   if (id && event !== null) {
-  //     fetchEventSchedule();
-  //   }
-  // }, [event]);
+    if (id && event !== null) {
+      fetchEventSchedule();
+    }
+  }, [event]);
 
   // useEffect(() => {
   //   const fetchEventTickets = async () => {

@@ -2,13 +2,14 @@
   "expo": {
     "name": "MiTix",
     "slug": "MiTix",
+    "scheme": "mitix",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "nexuss",
+    "icon": "./assets/icon.png",
     "userInterfaceStyle": "automatic",
+    "newArchEnabled": true,
     "splash": {
-      "image": "./assets/images/splash.png",
+      "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
       "backgroundColor": "#242424"
     },
