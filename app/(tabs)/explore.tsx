@@ -82,11 +82,11 @@ const Explore = () => {
   };
 
   return (
-    <SafeAreaView className="bg-gray h-max px-4">
-      <View className="bg-black-100 flex-row mb-4 rounded-xl items-center px-3">
+    <SafeAreaView className="bg-gray h-full px-4">
+      <View className="bg-black-100 flex-row mb-2 h-[7vh] rounded-xl items-center px-3">
         <FontAwesome name="search" size={24} color="grey" />
         <TextInput
-          className="flex-1 p-3 text-white font-ssemibold text-xl pb-4"
+          className="flex-1 p-3 text-white font-ssemibold text-xl "
           placeholder="Eventos o artistas"
           placeholderTextColor={"grey"}
           value={searchQuery}
@@ -94,7 +94,7 @@ const Explore = () => {
         />
         <View className="flex-row">
           <TouchableOpacity
-            className={`py-2 px-2 rounded-lg mr-1 ${
+            className={`p-2 rounded-lg mr-1 ${
               showingEvents ? "bg-red" : "bg-gray-600"
             }`}
             onPress={() => setShowingEvents(true)} // Cambia a mostrar eventos
@@ -102,7 +102,7 @@ const Explore = () => {
             <Text className="text-white font-sbold">Eventos</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className={`py-2 px-2 rounded-lg ${
+            className={`p-2 rounded-lg ${
               !showingEvents ? "bg-red" : "bg-gray-600"
             }`}
             onPress={() => setShowingEvents(false)} // Cambia a mostrar portales
@@ -112,8 +112,8 @@ const Explore = () => {
         </View>
       </View>
 
-      <View className="justify-center h-full">
-        <ScrollView>
+      <View className="justify-center h-max mb-[5vh] bg-red">
+        <ScrollView className="">
           {loading ? (
             <Text className="text-white">Cargando...</Text>
           ) : showingEvents ? (

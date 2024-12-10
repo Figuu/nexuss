@@ -8,6 +8,7 @@ module.exports = {
           DEFAULT: "#0A0A0A",
           200: "#3A3A3A",
           300: "#CECECE",
+          //1d1d1d
         },
         blue: {
           DEFAULT: "#1474D4",

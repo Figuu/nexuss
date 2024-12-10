@@ -25,17 +25,50 @@ const Home = () => {
     let isMounted = true;
 
     const fetchNext = async () => {
+      setNexEvents([]);
+
       try {
         const result = await axios.get(`${API_URL}/event`, {
           params: {
             status_id: 1,
           },
         });
+
         if (isMounted) {
-          setNexEvents(result.data);
+          // Filtra los eventos que tienen un array no vacío en `schedure`
+          const filteredEvents = result.data.filter(
+            (event: any) => event.schedure && event.schedure.length > 0
+          );
+
+          // Ordena los eventos filtrados según la fecha más cercana en `schedure`
+          const sortedEvents = filteredEvents.sort((a: any, b: any) => {
+            const aClosestDate = new Date(
+              a.schedure.reduce(
+                (earliest: string, schedule: { date: string }) =>
+                  new Date(schedule.date) < new Date(earliest)
+                    ? schedule.date
+                    : earliest,
+                a.schedure[0].date
+              )
+            ).getTime(); // Convierte a timestamp
+
+            const bClosestDate = new Date(
+              b.schedure.reduce(
+                (earliest: string, schedule: { date: string }) =>
+                  new Date(schedule.date) < new Date(earliest)
+                    ? schedule.date
+                    : earliest,
+                b.schedure[0].date
+              )
+            ).getTime(); // Convierte a timestamp
+
+            return aClosestDate - bClosestDate;
+          });
+
+          setNexEvents(sortedEvents);
         }
       } catch (error) {
-        console.error("Error fetching events:", error);
+        console.error("Error fetching user data:", error);
       }
     };
 
@@ -59,6 +92,7 @@ const Home = () => {
         });
         if (isMounted) {
           setSportsEvents(result.data);
+          console.log(sportsEvents);
         }
       } catch (error) {
         console.error("Error fetching events:", error);
@@ -183,7 +217,9 @@ const Home = () => {
         {/* Puedes replicar la misma lógica para la sección de deportes */}
         <View className="mb-4">
           <View className="flex-row items-center justify-between">
-            <Text className="text-white font-ssemibold text-xl">CONCIERTOS</Text>
+            <Text className="text-white font-ssemibold text-xl">
+              CONCIERTOS
+            </Text>
             <TouchableOpacity
               onPress={() => toCategory("bdd23728-2238-4e2f-9058-5e0f15f08f90")}
             >

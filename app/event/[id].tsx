@@ -33,16 +33,6 @@ interface ScheduleType {
   end_time: string;
 }
 
-// interface TicketType {
-//   id: string;
-//   name: string;
-//   price: string;
-//   quantity: string;
-//   available: number;
-//   currency: any;
-//   schedure: ScheduleType;
-// }
-
 const Event = () => {
   const { id } = useGlobalSearchParams();
   const [event, setEvent] = useState<EventType | null>(null);
@@ -50,13 +40,6 @@ const Event = () => {
   const [error, setError] = useState("");
   const [schedule, setSchedule] = useState<ScheduleType[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
-  // const [ticketTypes, setTicketTypes] = useState<TicketType[]>([]);
-
-  // const [selectedDate, setSelectedDate] = useState<string | null>(null);
-  // const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
-
-  // const [ticketQuantity, setTicketQuantity] = useState(1);
-  // const [filteredTickets, setFilteredTickets] = useState<TicketType[]>([]);
 
   useEffect(() => {
     const fetchEventDetails = async () => {
@@ -98,34 +81,6 @@ const Event = () => {
       fetchEventSchedule();
     }
   }, [event]);
-
-  // useEffect(() => {
-  //   const fetchEventTickets = async () => {
-  //     try {
-  //       const response = await axios.get(API_URL + "/ticket-type", {
-  //         params: {
-  //           event_id: id,
-  //         },
-  //       });
-  //       setTicketTypes(response.data);
-  //     } catch (err) {
-  //       setError("Error al cargar los tipos de entradas");
-  //     }
-  //   };
-
-  //   if (id && event !== null) {
-  //     fetchEventTickets();
-  //   }
-  // }, [event]);
-
-  // useEffect(() => {
-  //   if (selectedDate) {
-  //     const filtered = ticketTypes.filter(
-  //       (ticket) => ticket.schedure.id === selectedDate
-  //     );
-  //     setFilteredTickets(filtered);
-  //   }
-  // }, [selectedDate]);
 
   if (loading) {
     return (
@@ -255,7 +210,8 @@ const Event = () => {
           <TicketModal
             visible={modalVisible}
             onClose={() => setModalVisible(false)}
-            eventId={id}
+            eventId={id?.toString()}
+            eventName={event.name}
           />
         </>
       )}
@@ -264,137 +220,3 @@ const Event = () => {
 };
 
 export default Event;
-
-{
-  /* <Modal
-  animationType="slide"
-  transparent={true}
-  visible={modalVisible}
-  onRequestClose={() => setModalVisible(false)}
->
-  <View className="flex-1 justify-center items-center bg-gray rounded-t-3xl ">
-    <View className="p-4 rounded-lg w-[90%] h-[90%]">
-      <Text className="text-center text-white text-2xl font-sbold">
-        {event.name}
-      </Text>
-      <Text className="text-gray-400">{event.address}</Text>
-      <View className="mt-4">
-        <Text className="text-white text-lg font-sbold">Fechas</Text>
-        <View className="flex-row flex-wrap">
-          {schedule.map((item, index) => {
-            const { day, month } = formatDate(item.date);
-            const isSelectedD = selectedDate === item.id;
-            return (
-              <TouchableOpacity
-                key={index}
-                onPress={() => setSelectedDate(item.id)}
-                className={`p-4 mr-2 rounded-lg w-[80px] h-[80px] justify-center items-center ${
-                  isSelectedD ? "bg-red-500" : "bg-gray-200"
-                }`}
-              >
-                <Text
-                  className={`text-lg font-bold ${
-                    isSelectedD ? "text-white" : "text-white"
-                  }`}
-                >
-                  {day}
-                </Text>
-                <Text
-                  className={`text-sm ${
-                    isSelectedD ? "text-white" : "text-gray-400"
-                  }`}
-                >
-                  {month}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-      </View>
-      {filteredTickets.length > 0 ? (
-        <View className="mt-4">
-          <Text className="text-white text-lg font-sbold">
-            Entradas Disponibles
-          </Text>
-          {filteredTickets.map((ticket, index) => {
-            const isSelectedT = selectedTicket === ticket.id;
-            return (
-              <View key={index}>
-                <TouchableOpacity
-                  onPress={() => setSelectedTicket(ticket.id)}
-                  className={`p-2 mr-2 mb-2 bg-gray-200 rounded-lg justify-center items-center ${
-                    isSelectedT ? "bg-red-500" : "bg-gray-200"
-                  }`}
-                >
-                  <Text className="text-white font-sbold text-base">
-                    {ticket.name}
-                  </Text>
-                  <Text
-                    className={`text-sm font-semibold ${
-                      isSelectedT ? "text-white" : "text-gray-400"
-                    }`}
-                  >
-                    {ticket.price} {ticket.currency.code}
-                  </Text>
-                  <Text
-                    className={`text-sm ${
-                      isSelectedT ? "text-white" : "text-gray-400"
-                    }`}
-                  >
-                    Disponible: {ticket.available}
-                  </Text>
-                </TouchableOpacity>
-                {isSelectedT && (
-                  <View className="flex-row justify-between items-center mt-2">
-                    <TouchableOpacity
-                      onPress={() =>
-                        setTicketQuantity((prev) =>
-                          prev > 1 ? prev - 1 : prev
-                        )
-                      }
-                      className="bg-gray-500 p-2 rounded-md"
-                    >
-                      <Text className="text-white text-lg">-</Text>
-                    </TouchableOpacity>
-                    <Text className="text-white text-lg">{ticketQuantity}</Text>
-                    <TouchableOpacity
-                      onPress={() =>
-                        setTicketQuantity((prev) =>
-                          prev < ticket.available ? prev + 1 : prev
-                        )
-                      }
-                      className="bg-gray-500 p-2 rounded-md"
-                    >
-                      <Text className="text-white text-lg">+</Text>
-                    </TouchableOpacity>
-                  </View>
-                )}
-              </View>
-            );
-          })}
-        </View>
-      ) : (
-        <Text className="text-white mt-4">
-          No hay entradas disponibles para esta fecha.
-        </Text>
-      )}
-      <TouchableOpacity
-        className="bg-red-500 p-4 mt-4 rounded-xl"
-        onPress={() => buyTicket(id, selectedTicket, ticketQuantity)}
-      >
-        <Text className="text-white text-center text-lg font-sbold">
-          Comprar
-        </Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        className="bg-red-500 p-4 mt-4 rounded-xl"
-        onPress={() => setModalVisible(false)}
-      >
-        <Text className="text-white text-center text-lg font-sbold">
-          Cerrar
-        </Text>
-      </TouchableOpacity>
-    </View>
-  </View>
-</Modal>; */
-}
