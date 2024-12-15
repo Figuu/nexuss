@@ -92,7 +92,6 @@ const Home = () => {
         });
         if (isMounted) {
           setSportsEvents(result.data);
-          console.log(sportsEvents);
         }
       } catch (error) {
         console.error("Error fetching events:", error);

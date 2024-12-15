@@ -37,7 +37,7 @@ const SignIn = () => {
         </Text>
 
         <View className="mb-4">
-          <View className="bg-gray-200 flex-row items-center p-3 rounded-xl mb-4">
+          <View className="bg-gray-200 flex-row items-center p-3 rounded-xl mb-6">
             <FontAwesome
               name="envelope"
               size={20}

@@ -69,7 +69,7 @@ const Explore = () => {
         },
       });
       setPortals(response.data);
-      console.log(response.data);
+      // console.log(response.data);
     } catch (err) {
       setError("Error al cargar los portales");
     } finally {
@@ -112,7 +112,7 @@ const Explore = () => {
         </View>
       </View>
 
-      <View className="justify-center h-max mb-[5vh] bg-red">
+      <View className="justify-center h-max mb-[5vh]">
         <ScrollView className="">
           {loading ? (
             <Text className="text-white">Cargando...</Text>

@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
-  Modal,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useGlobalSearchParams } from "expo-router";
@@ -15,6 +14,7 @@ import { images } from "../../constants";
 import axios from "axios";
 import { API_URL } from "../context/AuthContext";
 import TicketModal from "./[id]/ticketModal";
+import useAuthGuard from "../../hooks/useAuthGuard";
 
 interface EventType {
   id: string;
@@ -98,22 +98,13 @@ const Event = () => {
     );
   }
 
-  const handleBuyTickets = () => {
-    setModalVisible(true);
-  };
+  const checkAuth = useAuthGuard();
 
-  const buyTicket = async (eventId: any, ticketType: any, number: any) => {
-    try {
-      const response = await axios.post(API_URL + "/ticket", {
-        event_id: eventId,
-        ticket_type_id: ticketType,
-        number: number,
-        user_id: "1c962b5d-5b96-453a-b7a5-b7a2e70b52ec",
-        date: new Date().toISOString(),
-        code: "n/a",
-        seller_id: "48d4320a-b81c-40d1-b999-ae7cd7620434",
-      });
-    } catch (err) {}
+  const handleBuyTickets = () => {
+    const isAuthenticated = checkAuth();
+    if (isAuthenticated) {
+      setModalVisible(true);
+    }
   };
 
   const formatDate = (dateString: string) => {

@@ -10,6 +10,7 @@ interface PaymentViewProps {
 }
 
 const CardPaymentView: React.FC<PaymentViewProps> = ({ visible, onClose }) => {
+  
   return (
     <Modal
       isVisible={visible} 

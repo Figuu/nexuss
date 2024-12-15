@@ -7,6 +7,7 @@ import {
 } from "react";
 import axios from "axios";
 import * as SecureStore from "expo-secure-store";
+import { router } from "expo-router";
 
 interface AuthState {
   token: string | null;
@@ -55,7 +56,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   const refreshTokens = async (refreshToken: string) => {
     try {
-      const response = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
+      const response = await axios.post(`${API_URL}/auth/refresh-token`, { refreshToken });
       const { token: newToken, refreshToken: newRefreshToken } = response.data;
       
       setAuthState({ token: newToken, authenticated: true });
@@ -147,6 +148,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
     axios.defaults.headers.common["Authorization"] = "";
     setAuthState({ token: null, authenticated: false });
+    router.replace("/");
   }, []);
 
   const value = {
