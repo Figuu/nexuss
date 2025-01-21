@@ -52,14 +52,14 @@ const Portal = () => {
   if (loading) {
     // Mostrar pantalla de carga cuando loading sea true
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-gray">
+      <SafeAreaView className="flex-1 justify-center items-center bg-background">
         <ActivityIndicator size={"large"} color="#ffffff" />
       </SafeAreaView>
     );
   }
 
   return (
-    <SafeAreaView className="flex-1 bg-gray p-4">
+    <SafeAreaView className="flex-1 bg-background p-4">
       <View className="w-[100vw] -mx-4 -mt-16">
         <Image
           src={portal?.cover_image}
@@ -79,7 +79,7 @@ const Portal = () => {
       <View className="mt-7 items-center">
         <Text className="text-white text-4xl font-sblack">{portal?.title}</Text>
         <View className="mt-2">
-          <Text className="text-gray-400">{portal?.description}</Text>
+          <Text className="text-gray-light">{portal?.description}</Text>
           <View className="flex-row mt-6 justify-evenly space-x-0 mx-4">
             <FontAwesome6 name="instagram" size={24} color="white" />
             <FontAwesome6 name="facebook" size={24} color="white" />

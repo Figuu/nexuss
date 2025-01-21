@@ -82,8 +82,8 @@ const Explore = () => {
   };
 
   return (
-    <SafeAreaView className="bg-gray h-full px-4">
-      <View className="bg-black-100 flex-row mb-2 h-[7vh] rounded-xl items-center px-3">
+    <SafeAreaView className="bg-background h-full px-4">
+      <View className="bg-background-card flex-row mb-2 h-[7vh] rounded-xl items-center px-3">
         <FontAwesome name="search" size={24} color="grey" />
         <TextInput
           className="flex-1 p-3 text-white font-ssemibold text-xl "
@@ -95,7 +95,7 @@ const Explore = () => {
         <View className="flex-row">
           <TouchableOpacity
             className={`p-2 rounded-lg mr-1 ${
-              showingEvents ? "bg-red" : "bg-gray-600"
+              showingEvents ? "bg-primary" : "bg-gray-light"
             }`}
             onPress={() => setShowingEvents(true)} // Cambia a mostrar eventos
           >
@@ -103,7 +103,7 @@ const Explore = () => {
           </TouchableOpacity>
           <TouchableOpacity
             className={`p-2 rounded-lg ${
-              !showingEvents ? "bg-red" : "bg-gray-600"
+              !showingEvents ? "bg-primary" : "bg-gray-light"
             }`}
             onPress={() => setShowingEvents(false)} // Cambia a mostrar portales
           >

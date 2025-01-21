@@ -51,14 +51,14 @@ const SignUp = () => {
   // };
 
   return (
-    <View className="flex-1 bg-gray justify-center items-center p-4">
+    <View className="flex-1 bg-background justify-center items-center p-4">
       <View className="w-full max-w-sm">
         <Text className="text-white text-4xl mb-8 text-center font-sbold">
           Create Your Account
         </Text>
 
         <View className="mb-4">
-          <View className="bg-gray-200 flex-row items-center p-3 rounded-lg mb-4">
+          <View className="bg-background-card flex-row items-center p-3 rounded-lg mb-4">
             <FontAwesome
               name="envelope"
               size={20}
@@ -73,7 +73,7 @@ const SignUp = () => {
             />
           </View>
 
-          <View className="bg-gray-200 flex-row items-center p-3 rounded-lg mb-4">
+          <View className="bg-background-card flex-row items-center p-3 rounded-lg mb-4">
             <FontAwesome
               name="lock"
               size={23}
@@ -89,7 +89,7 @@ const SignUp = () => {
             />
           </View>
 
-          <View className="bg-gray-200 flex-row items-center p-3 rounded-lg mb-6">
+          <View className="bg-background-card flex-row items-center p-3 rounded-lg mb-6">
             <FontAwesome
               name="lock"
               size={23}
@@ -107,7 +107,7 @@ const SignUp = () => {
 
           <TouchableOpacity
             onPress={handleRegister}
-            className="bg-red rounded-lg py-3 px-4 mb-6"
+            className="bg-primary rounded-lg py-3 px-4 mb-6"
           >
             <Text
               style={{ fontFamily: "LeagueSpartan_400Regular" }}
@@ -123,10 +123,10 @@ const SignUp = () => {
             </Text>
           </View>
           <View className="flex-row justify-center mb-6">
-            <TouchableOpacity className="bg-gray-200 p-3 border border-[#545454] rounded-xl mx-2 aspect-[4/3] h-12 items-center">
+            <TouchableOpacity className="bg-background-card p-3 border border-[#545454] rounded-xl mx-2 aspect-[4/3] h-12 items-center">
               <FontAwesome name="facebook" size={24} color="white" />
             </TouchableOpacity>
-            <TouchableOpacity className="bg-gray-200 p-3 border border-[#545454] rounded-xl mx-2 aspect-[4/3] h-12 items-center">
+            <TouchableOpacity className="bg-background-card p-3 border border-[#545454] rounded-xl mx-2 aspect-[4/3] h-12 items-center">
               <FontAwesome name="google" size={24} color="white" />
             </TouchableOpacity>
           </View>
@@ -136,7 +136,7 @@ const SignUp = () => {
               Already have an account?
             </Text>
             <TouchableOpacity onPress={() => router.replace("/sign-in")}>
-              <Text className="text-red ml-1">Sign in</Text>
+              <Text className="text-primary ml-1">Sign in</Text>
             </TouchableOpacity>
           </View>
         </View>

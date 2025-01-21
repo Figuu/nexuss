@@ -35,8 +35,8 @@ const PortalEvents = () => {
   const renderEvent = ({ item }: { item: Event }) => (
     <TouchableOpacity className="p-4 mb-4 bg-white rounded-lg shadow">
       <Text className="text-lg font-bold">{item.name}</Text>
-      <Text className="text-sm text-gray-500">{item.date}</Text>
-      <Text className="text-sm text-gray-500">{item.location}</Text>
+      <Text className="text-sm text-gray-light">{item.date}</Text>
+      <Text className="text-sm text-gray-light">{item.location}</Text>
     </TouchableOpacity>
   );
 
@@ -45,7 +45,7 @@ const PortalEvents = () => {
   }
 
   return (
-    <View className="flex-1 p-4 bg-gray-100">
+    <View className="flex-1 p-4 bg-background">
       {events.length > 0 ? (
         <FlatList
           data={events}
@@ -54,7 +54,7 @@ const PortalEvents = () => {
           contentContainerStyle={{ paddingBottom: 16 }}
         />
       ) : (
-        <Text className="text-center text-gray-500 mt-10">No hay eventos disponibles</Text>
+        <Text className="text-center text-gray-light mt-10">No hay eventos disponibles</Text>
       )}
     </View>
   );

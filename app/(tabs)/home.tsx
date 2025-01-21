@@ -140,7 +140,7 @@ const Home = () => {
   };
 
   return (
-    <SafeAreaView className="bg-gray h-max px-4">
+    <SafeAreaView className="bg-background h-max px-4">
       <View className="w-full flex justify-start">
         <Text className="text-4xl text-start text-white font-sblack">
           MiTix
@@ -154,7 +154,7 @@ const Home = () => {
               PRÓXIMOS EVENTOS
             </Text>
             <TouchableOpacity>
-              <Text className="text-red font-ssemibold text-sm">Ver todos</Text>
+              <Text className="text-primary font-ssemibold text-sm">Ver todos</Text>
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} className="">
@@ -187,7 +187,7 @@ const Home = () => {
             <TouchableOpacity
               onPress={() => toCategory("1c5c51d1-a72b-4561-bcb2-5f38117304a6")}
             >
-              <Text className="text-red font-ssemibold text-sm">Ver todos</Text>
+              <Text className="text-primary font-ssemibold text-sm">Ver todos</Text>
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} className="">
@@ -222,7 +222,7 @@ const Home = () => {
             <TouchableOpacity
               onPress={() => toCategory("bdd23728-2238-4e2f-9058-5e0f15f08f90")}
             >
-              <Text className="text-red font-ssemibold text-sm">Ver todos</Text>
+              <Text className="text-primary font-ssemibold text-sm">Ver todos</Text>
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} className="">

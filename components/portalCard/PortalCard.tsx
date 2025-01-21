@@ -10,7 +10,7 @@ const PortalCard = ({ portal }) => {
   return (
     <TouchableOpacity
       onPress={handlePress}
-      className="flex-row w-full bg-black-100 rounded-xl mb-2 "
+      className="flex-row w-full bg-background-card rounded-xl mb-2 "
     >
       <View className="h-[120px] aspect-square bg-white rounded-xl mr-4">
         <Image

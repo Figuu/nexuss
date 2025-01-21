@@ -38,7 +38,7 @@ const EventCategories = () => {
   });
 
   return (
-    <SafeAreaView className="bg-gray h-max px-4">
+    <SafeAreaView className="bg-background h-max px-4">
       <View className="justify-center h-full">
         <ScrollView>
           {events?.map((event) => (

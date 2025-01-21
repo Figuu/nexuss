@@ -1,8 +1,9 @@
-import { StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
 import { Slot, SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { AuthProvider } from "./context/AuthContext";
+import { CartProvider } from "./context/CartContext";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -28,52 +29,66 @@ const RootLayout = () => {
     "LeagueSpartan-Thin": require("../assets/fonts/LeagueSpartan-Thin.ttf"),
   });
 
-  useEffect(() => {
-    if (error) throw error;
+  const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-    if (fontsLoaded) {
-      SplashScreen.hideAsync();
-    }
+  useEffect(() => {
+    const initializeApp = async () => {
+      if (error) throw error;
+
+      if (fontsLoaded) {
+        try {
+          SplashScreen.hideAsync();
+        } catch (e) {
+          console.error(e);
+        }
+        setIsAuthLoading(false); // Carga de fuentes completada
+      }
+    };
+
+    initializeApp();
   }, [fontsLoaded, error]);
 
-  if (!fontsLoaded) {
-    return null;
+  if (!fontsLoaded || isAuthLoading) {
+    return (
+      <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        <ActivityIndicator size="large" />
+      </View>
+    );
   }
 
-  if (!fontsLoaded && !error) {
-    return null;
-  }
   return (
     <AuthProvider>
-      <Stack>
-        <Stack.Screen
-          name="index"
-          options={{ headerShown: false, gestureEnabled: false }}
-        />
-        <Stack.Screen name="(auth)" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="(tabs)"
-          options={{ headerShown: false, gestureEnabled: false }}
-        />
-        <Stack.Screen name="event/[id]" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="event/categories/[id]"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="event/[id]/ticketModal"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen
-          name="event/[id]/payment"
-          options={{ headerShown: false }}
-        />
-        <Stack.Screen name="portal/[id]" options={{ headerShown: false }} />
-        <Stack.Screen
-          name="portal/[id]/events"
-          options={{ headerShown: false }}
-        />
-      </Stack>
+      <CartProvider>
+        <Stack>
+          <Stack.Screen
+            name="index"
+            options={{ headerShown: false, gestureEnabled: false }}
+          />
+          <Stack.Screen name="(auth)" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="(tabs)"
+            options={{ headerShown: false, gestureEnabled: false }}
+          />
+          <Stack.Screen name="event/[id]" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="event/categories/[id]"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="event/[id]/ticketModal"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="event/[id]/payment"
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen name="portal/[id]" options={{ headerShown: false }} />
+          <Stack.Screen
+            name="portal/[id]/events"
+            options={{ headerShown: false }}
+          />
+        </Stack>
+      </CartProvider>
     </AuthProvider>
   );
 };

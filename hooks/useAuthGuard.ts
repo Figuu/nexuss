@@ -1,4 +1,4 @@
-import { router, useNavigation } from "expo-router";
+import { router } from "expo-router";
 import { Alert } from "react-native";
 import { useAuth } from "../app/context/AuthContext";
 

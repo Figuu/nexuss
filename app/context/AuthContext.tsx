@@ -9,18 +9,36 @@ import axios from "axios";
 import * as SecureStore from "expo-secure-store";
 import { router } from "expo-router";
 
+interface User {
+  id: string;
+  username: string;
+  name: string;
+  phone: string;
+  country_code: string;
+  auth_method: string;
+  status_id: number;
+  is_owner: boolean;
+  is_seller: boolean;
+  role: any[];
+}
+
 interface AuthState {
   token: string | null;
   authenticated: boolean;
+  user: User | null;
 }
 
 interface AuthProps {
   authState: AuthState;
-  onRegister: (username: string, password: string, name: string, auth_method: string) => Promise<any>;
+  onRegister: (
+    username: string,
+    password: string,
+    name: string,
+    auth_method: string
+  ) => Promise<any>;
   onLogin: (username: string, password: string) => Promise<any>;
   onLogout: () => Promise<void>;
 }
-
 
 const TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refreshToken";
@@ -37,37 +55,77 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [authState, setAuthState] = useState<AuthState>({
     token: null,
     authenticated: false,
+    user: null,
   });
 
   const loadTokens = async () => {
-    const token = await SecureStore.getItemAsync(TOKEN_KEY);
-    const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
-    if (token) {
-      axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-      setAuthState({ token, authenticated: true });
-    } else if (refreshToken) {
-      await refreshTokens(refreshToken);
+    try {
+      const token = await SecureStore.getItemAsync(TOKEN_KEY);
+      const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
+      const user = await SecureStore.getItemAsync("user");
+
+      // console.log("Token:", token);
+
+      // console.log("Token:", refreshToken);
+
+      if (refreshToken) {
+        await refreshTokens(refreshToken);
+      } else if (token) {
+        axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
+        // setAuthState({ token, authenticated: true });
+        setAuthState((prev) => ({
+          ...prev,
+          token,
+          authenticated: true,
+          user: user ? JSON.parse(user) : null,
+        }));
+      } else {
+        // setAuthState({ token: null, authenticated: false });
+        setAuthState({ token: null, authenticated: false, user: null });
+      }
+    } catch (error) {
+      console.error("Error al cargar los tokens:", error);
+      await logout(); // Si hay un error, asegúrate de cerrar sesión
+    }
+  };
+
+  const refreshTokens = async (refreshToken: string) => {
+    try {
+      // Configurar encabezado con el token de refresco
+      const headers = {
+        Authorization: `Bearer ${refreshToken}`,
+      };
+
+      const response = await axios.post(
+        `${API_URL}/auth/refresh-token`,
+        {},
+        { headers }
+      );
+
+      const { token: newToken, refreshToken: newRefreshToken } = response.data;
+
+      await SecureStore.setItemAsync(TOKEN_KEY, newToken);
+      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+
+      console.log("new", newToken);
+
+      // setAuthState({ token: newToken, authenticated: true });
+      setAuthState((prev) => ({
+        ...prev,
+        token: newToken,
+        authenticated: true,
+      }));
+
+      axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
+    } catch (error) {
+      console.error("Error al refrescar los tokens:", error);
+      await logout();
     }
   };
 
   useEffect(() => {
     loadTokens();
   }, []);
-
-  const refreshTokens = async (refreshToken: string) => {
-    try {
-      const response = await axios.post(`${API_URL}/auth/refresh-token`, { refreshToken });
-      const { token: newToken, refreshToken: newRefreshToken } = response.data;
-      
-      setAuthState({ token: newToken, authenticated: true });
-      axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
-      await SecureStore.setItemAsync(TOKEN_KEY, newToken);
-      await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, newRefreshToken);
-    } catch (error) {
-      console.error("Failed to refresh tokens:", error);
-      await logout();
-    }
-  };
 
   // useEffect(() => {
   //   const loadToken = async () => {
@@ -85,8 +143,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       username: string,
       password: string,
       name: string,
-      auth_method: string,
-      
+      auth_method: string
     ) => {
       try {
         return await axios.post(`${API_URL}/auth/register-user`, {
@@ -95,11 +152,11 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
           name,
           auth_method,
           status_id: 1,
-          is_owner : false,
+          is_owner: false,
           is_seller: false,
           country_code: "591",
           phone: "12121212",
-          roles: []
+          roles: [],
         });
       } catch (error) {
         return { error: true, message: (error as any).response.data.message };
@@ -117,16 +174,18 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
       // Verificar si la respuesta tiene el token
       if (result.data && result.data.token && result.data.refreshToken) {
-        const { token, refreshToken } = result.data;
+        const { token, refreshToken, user } = result.data;
 
         setAuthState({
           token,
           authenticated: true,
+          user,
         });
 
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         await SecureStore.setItemAsync(TOKEN_KEY, token);
         await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
+        await SecureStore.setItemAsync("user", JSON.stringify(user));
 
         return result;
       } else {
@@ -146,8 +205,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = useCallback(async () => {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
+    await SecureStore.deleteItemAsync("user");
     axios.defaults.headers.common["Authorization"] = "";
-    setAuthState({ token: null, authenticated: false });
+    setAuthState({ token: null, authenticated: false, user: null });
     router.replace("/");
   }, []);
 

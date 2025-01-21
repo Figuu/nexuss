@@ -41,6 +41,8 @@ const Event = () => {
   const [schedule, setSchedule] = useState<ScheduleType[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
 
+  const checkAuth = useAuthGuard();
+
   useEffect(() => {
     const fetchEventDetails = async () => {
       try {
@@ -84,7 +86,7 @@ const Event = () => {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-gray">
+      <SafeAreaView className="flex-1 justify-center items-center bg-background">
         <ActivityIndicator size={"large"} color="#ffffff" />
       </SafeAreaView>
     );
@@ -92,17 +94,16 @@ const Event = () => {
 
   if (error) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-gray">
+      <SafeAreaView className="flex-1 justify-center items-center bg-background">
         <Text className="text-white">{error}</Text>
       </SafeAreaView>
     );
   }
 
-  const checkAuth = useAuthGuard();
+  
 
   const handleBuyTickets = () => {
-    const isAuthenticated = checkAuth();
-    if (isAuthenticated) {
+    if (checkAuth()) {
       setModalVisible(true);
     }
   };
@@ -115,7 +116,7 @@ const Event = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-gray -mt-6">
+    <SafeAreaView className="flex-1 bg-background -mt-6">
       {event && (
         <>
           <ScrollView className="overflow-visible">
@@ -137,7 +138,7 @@ const Event = () => {
                   {event.name}
                 </Text>
                 <View className="mt-2">
-                  <Text className="text-gray-400">📍{event.address}</Text>
+                  <Text className="text-white-100">📍{event.address}</Text>
                 </View>
               </View>
 
@@ -150,12 +151,12 @@ const Event = () => {
                     return (
                       <View
                         key={index}
-                        className="bg-gray-200 p-2 mr-2 rounded-lg h-14 w-14 justify-center items-center"
+                        className="bg-background-card p-2 mr-2 rounded-lg h-14 w-14 justify-center items-center"
                       >
-                        <Text className="text-white text-lg font-bold">
+                        <Text className="text-white text-lg font-sbold">
                           {day}
                         </Text>
-                        <Text className="text-gray-400 text-sm">{month}</Text>
+                        <Text className="text-white-100 text-sm">{month}</Text>
                       </View>
                     );
                   })}
@@ -186,9 +187,9 @@ const Event = () => {
             </View>
           </ScrollView>
 
-          <View className="absolute p-4 bottom-0 w-[100vw] bg-gray h-28 flex justify-center items-center rounded-t-3xl">
+          <View className="absolute p-4 bottom-0 w-[100vw] bg-background h-28 flex justify-center items-center rounded-t-3xl">
             <TouchableOpacity
-              className="bg-red-500 p-4 absolute w-full rounded-xl bottom-8"
+              className="bg-primary p-4 absolute w-full rounded-xl bottom-8"
               onPress={handleBuyTickets}
             >
               <Text className="text-white text-center text-lg font-sbold">

@@ -9,7 +9,7 @@ import CustomButton from "../components/CustomButton";
 
 export default function App() {
   return (
-    <SafeAreaView className="bg-gray h-full">
+    <SafeAreaView className="bg-background h-full">
       <ScrollView contentContainerStyle={{ height: "100%" }}>
         <View className="w-full justify-center items-center min-h-[85vh] px-4">
           <Text className="font-sblack text-6xl text-white">MiTix</Text>
