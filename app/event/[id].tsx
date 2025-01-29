@@ -202,8 +202,7 @@ const Event = () => {
           <TicketModal
             visible={modalVisible}
             onClose={() => setModalVisible(false)}
-            eventId={id?.toString()}
-            eventName={event.name}
+            event={event}
           />
         </>
       )}

@@ -23,6 +23,16 @@ interface ScheduleType {
   date: string;
 }
 
+interface EventType {
+  id: string;
+  name: string;
+  address: string;
+  front_page_image: string;
+  portal_id: string;
+  latitude: string;
+  longitude: string;
+}
+
 interface TicketType {
   id: string;
   name: string;
@@ -45,15 +55,13 @@ interface NumberedTicket {
 interface TicketModalProps {
   visible: boolean;
   onClose: () => void;
-  eventId: string;
-  eventName: string;
+  event: EventType;
 }
 
 const TicketModal: React.FC<TicketModalProps> = ({
   visible,
   onClose,
-  eventId,
-  eventName,
+  event,
 }) => {
   const [schedule, setSchedule] = useState<ScheduleType[]>([]);
   const [tickets, setTickets] = useState<TicketType[]>([]);
@@ -106,18 +114,18 @@ const TicketModal: React.FC<TicketModalProps> = ({
   const fetchEventData = useCallback(async () => {
     try {
       const [scheduleRes, ticketsRes] = await Promise.all([
-        axios.get(`${API_URL}/schedure`, { params: { event_id: eventId } }),
-        axios.get(`${API_URL}/ticket-type`, { params: { event_id: eventId } }),
+        axios.get(`${API_URL}/schedure`, { params: { event_id: event.id } }),
+        axios.get(`${API_URL}/ticket-type`, { params: { event_id: event.id } }),
       ]);
       setSchedule(scheduleRes.data);
       setTickets(ticketsRes.data);
     } catch (err) {
       setError("Error al cargar los datos del evento");
     }
-  }, [eventId]);
+  }, [event.id]);
 
   useEffect(() => {
-    if (eventId) {
+    if (event.id) {
       fetchEventData();
     }
   }, [fetchEventData]);
@@ -168,7 +176,9 @@ const TicketModal: React.FC<TicketModalProps> = ({
       name: ticket.name,
       price: ticket.price,
       currency: ticket.currency.code,
-      event: eventName,
+      is_numbered: ticket.is_numbered,
+      event: event,
+      personalInfo: ticket.is_personal ? { fullName, email } : null,
     };
 
     addToCart(cartItem);
@@ -209,15 +219,12 @@ const TicketModal: React.FC<TicketModalProps> = ({
       <SafeAreaView className="flex-1 bg-background items-center rounded-t-3xl mt-10">
         <View className="bg-background my-2 h-1 w-[40vw] rounded-full" />
         <Text className="text-center text-white text-2xl font-bold">
-          {eventName}
+          {event.name}
         </Text>
         <ScrollView
-          nestedScrollEnabled={false}
-          scrollEnabled={
-            dropdownDateOpen || dropdownTicketOpen || dropdownNumberedOpen
-              ? false
-              : true
-          }
+          nestedScrollEnabled={true}
+          keyboardShouldPersistTaps="handled"
+          scrollEnabled={dropdownDateOpen || dropdownTicketOpen ? false : true}
           className="w-full mt-4 flex-col"
         >
           <View className="flex-row w-full px-4 my-2 ">
@@ -268,21 +275,23 @@ const TicketModal: React.FC<TicketModalProps> = ({
           )}
 
           <View className="w-full px-4 mt-4">
-            <View className="flex-row justify-between items-center">
-              <TouchableOpacity
-                onPress={() => handleQuantityChange(false)}
-                className="bg-background p-2 rounded-md"
-              >
-                <Text className="text-white text-lg">-</Text>
-              </TouchableOpacity>
-              <Text className="text-white text-lg">{quantity}</Text>
-              <TouchableOpacity
-                onPress={() => handleQuantityChange(true)}
-                className="bg-background p-2 rounded-md"
-              >
-                <Text className="text-white text-lg">+</Text>
-              </TouchableOpacity>
-            </View>
+            {numberedTickets.length == 0 && (
+              <View className="flex-row justify-between items-center">
+                <TouchableOpacity
+                  onPress={() => handleQuantityChange(false)}
+                  className="bg-background p-2 rounded-md"
+                >
+                  <Text className="text-white text-lg">-</Text>
+                </TouchableOpacity>
+                <Text className="text-white text-lg">{quantity}</Text>
+                <TouchableOpacity
+                  onPress={() => handleQuantityChange(true)}
+                  className="bg-background p-2 rounded-md"
+                >
+                  <Text className="text-white text-lg">+</Text>
+                </TouchableOpacity>
+              </View>
+            )}
 
             {numberedTickets.length > 0 && (
               <View className="w-max mt-4">
@@ -298,6 +307,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
                   setValue={setSelectedNumberedTicket}
                   multiple={true}
                   mode="BADGE"
+                  search={true}
                 />
               </View>
             )}
@@ -333,9 +343,9 @@ const TicketModal: React.FC<TicketModalProps> = ({
               )}
           </View>
         </ScrollView>
-        <View className="flex-row justify-center w-full mt-4">
+        <View className="absolute bottom-4 flex-row justify-between w-max space-x-2 mt-4 mx-2 items-center ">
           <TouchableOpacity
-            className="bg-background-card p-4 mt-4 rounded-xl"
+            className="bg-background-card p-4 mt-4 rounded-xl w-36"
             onPress={handleClose}
           >
             <Text className="text-white text-center text-lg font-bold">
@@ -343,7 +353,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="bg-primary p-4 mt-4 rounded-xl"
+            className="bg-primary p-4 mt-4 rounded-xl w-36"
             onPress={handleBuy}
           >
             <Text className="text-white text-center text-lg font-bold">
@@ -351,9 +361,15 @@ const TicketModal: React.FC<TicketModalProps> = ({
             </Text>
           </TouchableOpacity>
           <TouchableOpacity
-            className="bg-primary p-4 mt-4 rounded-xl"
+            className="bg-primary items-center justify-center w-14 mt-4 rounded-xl aspect-square"
             onPress={addCart}
-          ></TouchableOpacity>
+          >
+            <Image
+              source={images.addCart}
+              className="w-10 h-10"
+              resizeMode="contain"
+            />
+          </TouchableOpacity>
         </View>
       </SafeAreaView>
       <Modal

@@ -42,6 +42,7 @@ interface AuthProps {
 
 const TOKEN_KEY = "token";
 const REFRESH_TOKEN_KEY = "refreshToken";
+const USER_KEY = "user";
 export const API_URL = "http://104.152.50.154:3002/api";
 const AuthContext = createContext<AuthProps | undefined>(undefined);
 
@@ -62,25 +63,31 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     try {
       const token = await SecureStore.getItemAsync(TOKEN_KEY);
       const refreshToken = await SecureStore.getItemAsync(REFRESH_TOKEN_KEY);
-      const user = await SecureStore.getItemAsync("user");
-
-      // console.log("Token:", token);
-
-      // console.log("Token:", refreshToken);
+      const user = await SecureStore.getItemAsync(USER_KEY);
 
       if (refreshToken) {
+        if (user) {
+          setAuthState((prev) => ({
+            ...prev,
+            user: user ? JSON.parse(user) : null,
+          }));
+        }
         await refreshTokens(refreshToken);
       } else if (token) {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
-        // setAuthState({ token, authenticated: true });
-        setAuthState((prev) => ({
-          ...prev,
+        // setAuthState((prev) => ({
+        //   ...prev,
+        //   token,
+        //   authenticated: true,
+        //   user: user ? JSON.parse(user) : null,
+        // }));
+
+        setAuthState({
           token,
           authenticated: true,
           user: user ? JSON.parse(user) : null,
-        }));
+        });
       } else {
-        // setAuthState({ token: null, authenticated: false });
         setAuthState({ token: null, authenticated: false, user: null });
       }
     } catch (error) {
@@ -107,7 +114,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       await SecureStore.setItemAsync(TOKEN_KEY, newToken);
       await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
 
-      console.log("new", newToken);
+      // console.log("new", newToken);
 
       // setAuthState({ token: newToken, authenticated: true });
       setAuthState((prev) => ({
@@ -119,6 +126,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       axios.defaults.headers.common["Authorization"] = `Bearer ${newToken}`;
     } catch (error) {
       console.error("Error al refrescar los tokens:", error);
+      alert("Tu sesión ha expirado, por favor inicia sesión de nuevo");
       await logout();
     }
   };
@@ -185,7 +193,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
         axios.defaults.headers.common["Authorization"] = `Bearer ${token}`;
         await SecureStore.setItemAsync(TOKEN_KEY, token);
         await SecureStore.setItemAsync(REFRESH_TOKEN_KEY, refreshToken);
-        await SecureStore.setItemAsync("user", JSON.stringify(user));
+        await SecureStore.setItemAsync(USER_KEY, JSON.stringify(user));
 
         return result;
       } else {
@@ -205,7 +213,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const logout = useCallback(async () => {
     await SecureStore.deleteItemAsync(TOKEN_KEY);
     await SecureStore.deleteItemAsync(REFRESH_TOKEN_KEY);
-    await SecureStore.deleteItemAsync("user");
+    await SecureStore.deleteItemAsync(USER_KEY);
     axios.defaults.headers.common["Authorization"] = "";
     setAuthState({ token: null, authenticated: false, user: null });
     router.replace("/");
@@ -220,3 +228,5 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
+
+export default AuthContext;

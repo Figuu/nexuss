@@ -79,7 +79,7 @@ const Tickets = () => {
           `${API_URL}/ticket`
             , {
             params: {
-              user_id: authState.user?.id,
+              // user_id: authState.user?.id,
             },
           }
         );

@@ -4,6 +4,7 @@ import {
   SafeAreaView,
   TouchableOpacity,
   ScrollView,
+  Image,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import useAuthGuard from "../../hooks/useAuthGuard";
@@ -11,19 +12,26 @@ import { router, useFocusEffect } from "expo-router";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
 import Modal from "react-native-modal";
+import CardPaymentView from "../event/[id]/cardPayment";
+import QrPaymentView from "../event/[id]/qrPayment";
+import { images } from "../../constants";
 
 const Profile = () => {
   const { onLogout } = useAuth();
   const checkAuth = useAuthGuard();
   const { authState } = useAuth();
 
+  const { cart, clearCart, increaseQuantity, decreaseQuantity, totalAmount } =
+    useCart();
   const [openCart, setOpenCart] = useState(false);
 
-  const { cart, clearCart } = useCart();
+  const [modalVisible, setModalVisible] = useState(false);
+  const [cardVisible, setCardVisible] = useState(false);
+  const [qrVisible, setQrVisible] = useState(false);
 
   useFocusEffect(() => {
     const isAuthenticated = checkAuth();
-    console.log(authState.user);
+    // console.log(authState.user);
     if (!isAuthenticated) {
       return;
     }
@@ -33,6 +41,19 @@ const Profile = () => {
     await onLogout();
     // router.push("Login");
   };
+
+
+  const closePayment = () => {
+    setCardVisible(false);
+    setQrVisible(false);
+  };
+
+  const handleBuy = () => {
+    setModalVisible(true);
+  };
+
+  // console.log(openCart)
+  // setOpenCart(true);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -95,19 +116,137 @@ const Profile = () => {
           className="m-0 justify-end"
         >
           <SafeAreaView className="bg-background rounded-t-3xl items-center mt-10 px-4 overflow-hidden">
-            <ScrollView className="h-full w-max mx-4 bg-primary">
+            <ScrollView className="h-full w-full p-2">
               {cart.map((item) => (
                 <TouchableOpacity
                   key={item.ticketId}
-                  className="flex-row justify-between items-center p-4 w-full h-max rounded-xl bg-background-card my-2"
+                  className="flex-row w-full bg-background-card rounded-xl mb-2"
                 >
-                  <Text className="text-base text-white-100">{item.event} </Text>
-                  <Text className="text-base text-white-100">{item.name} </Text>
-                  <Text className="text-sm text-white">{item.quantity}</Text>
+                  <View className="h-[100px] aspect-square bg-white rounded-xl mr-4">
+                    <Image
+                      src={item.event?.front_page_image}
+                      resizeMode="cover"
+                      className="w-full h-full rounded-xl"
+                    />
+                  </View>
+                  <View className="flex-1">
+                    <Text
+                      className="text-white font-sbold text-base"
+                      numberOfLines={3}
+                      ellipsizeMode="tail"
+                    >
+                      {item.event.name}
+                    </Text>
+                    <Text className="text-white-100">
+                      Ticket: {item.name}
+                    </Text>
+                    <Text className="text-white-100">
+                      Cantidad: {item.quantity}
+                    </Text>
+                    <Text className="text-white-100">
+                      Precio: {item.price} {item.currency}
+                    </Text>
+                  </View>
+                  <View className="flex-row items-center mr-2">
+                    <View className="flex-row justify-between items-center space-x-2">
+                      <TouchableOpacity
+                        onPress={() => decreaseQuantity(item.ticketId)}
+                        className="bg-background w-8 h-8 items-center justify-center rounded-md"
+                      >
+                        <Text className="text-white text-lg">-</Text>
+                      </TouchableOpacity>
+                      <Text className="text-white text-lg">
+                        {item.quantity}
+                      </Text>
+                      <TouchableOpacity
+                        onPress={() => increaseQuantity(item.ticketId)}
+                        className="bg-background w-8 h-8 items-center justify-center rounded-md"
+                      >
+                        <Text className="text-white text-lg">+</Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
                 </TouchableOpacity>
               ))}
             </ScrollView>
+            <View className="absolute bottom-2 w-full">
+              <View className="px-2 w-full">
+                <Text className="text-white text-xl font-bold">
+                  Total: {totalAmount().toFixed(2)} {cart[0]?.currency}
+                </Text>
+              </View>
+              <View className="w-full p-2 flex-row space-x-2">
+                <TouchableOpacity
+                  onPress={() => setOpenCart(false)}
+                  className="bg-background-card p-4 rounded-lg flex-1"
+                >
+                  <Text className="text-white font-semibold text-center">
+                    Cerrar
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={clearCart}
+                  className="bg-primary p-4 rounded-lg flex-1 "
+                >
+                  <Text className="text-white font-semibold text-center">
+                    Limpiar
+                  </Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  onPress={handleBuy}
+                  className="bg-primary p-4 rounded-lg flex-grow"
+                >
+                  <Text className="text-white font-semibold text-center">
+                    Comprar
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </SafeAreaView>
+          <Modal
+            animationIn="slideInUp"
+            animationOut="slideOutDown"
+            swipeDirection={cardVisible || qrVisible ? undefined : "down"}
+            isVisible={modalVisible}
+            onSwipeComplete={() => setModalVisible(false)}
+            onBackdropPress={() => setModalVisible(false)}
+            presentationStyle="overFullScreen"
+            className="m-0 justify-end"
+          >
+            <SafeAreaView className="bg-background rounded-t-3xl items-center h-[30vh]">
+              <View className="bg-background my-2 h-1 w-[40vw] rounded-full " />
+              <Text className="text-white">Pagar con</Text>
+              <View className="flex-row mt-4">
+                <TouchableOpacity
+                  onPress={() => {
+                    setCardVisible(true);
+                  }}
+                  className="bg-background-card p-4 mr-2 rounded-lg"
+                >
+                  <Image
+                    source={images.card}
+                    className="w-10 h-10"
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => {
+                    setQrVisible(true);
+                  }}
+                  className="bg-background-card p-4 ml-2 rounded-lg"
+                >
+                  <Image
+                    source={images.qr}
+                    className="w-10 h-10"
+                    resizeMode="contain"
+                  />
+                </TouchableOpacity>
+              </View>
+            </SafeAreaView>
+            <CardPaymentView visible={cardVisible} onClose={closePayment} />
+            <QrPaymentView visible={qrVisible} onClose={closePayment} />
+          </Modal>
         </Modal>
       </View>
     </SafeAreaView>

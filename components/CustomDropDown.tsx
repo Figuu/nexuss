@@ -1,4 +1,5 @@
 import React from "react";
+import { LogBox } from "react-native";
 import DropDownPicker from "react-native-dropdown-picker";
 
 interface CustomDropDownPickerProps {
@@ -10,6 +11,7 @@ interface CustomDropDownPickerProps {
   placeholder?: string;
   multiple?: boolean;
   mode?: string;
+  search?: boolean;
 }
 
 const CustomDropDownPicker: React.FC<CustomDropDownPickerProps> = ({
@@ -21,7 +23,12 @@ const CustomDropDownPicker: React.FC<CustomDropDownPickerProps> = ({
   placeholder = "",
   multiple = false,
   mode = "SIMPLE",
+  search = false,
 }) => {
+  LogBox.ignoreLogs([
+    "VirtualizedLists should never be nested inside plain ScrollViews", // Mensaje exacto
+  ]);
+  
   return (
     <DropDownPicker
       open={open}
@@ -51,11 +58,12 @@ const CustomDropDownPicker: React.FC<CustomDropDownPickerProps> = ({
         fontFamily: "LeagueSpartan-Bold",
       }}
       dropDownContainerStyle={{ backgroundColor: "#121212" }}
-      style={{ backgroundColor: "#121212", borderWidth: 0, paddingLeft: 10}}
+      style={{ backgroundColor: "#121212", borderWidth: 0, paddingLeft: 10 }}
       badgeDotColors={["#FE4949"]}
       theme="DARK"
       multiple={multiple}
       mode={mode}
+      searchable={search}
     />
   );
 };

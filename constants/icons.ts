@@ -8,7 +8,6 @@ import ticketS from "../assets/icons/ticketS.png";
 import ticketR from "../assets/icons/ticketR.png";
 import userS from "../assets/icons/userS.png";
 import userR from "../assets/icons/userR.png";
-import ShoppingCart from "../assets/icons/cart.png";
 
 
 export default {
@@ -22,5 +21,4 @@ export default {
   ticketR,
   userS,
   userR,
-  ShoppingCart,
 };
