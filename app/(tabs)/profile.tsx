@@ -5,15 +5,13 @@ import {
   TouchableOpacity,
   ScrollView,
   Image,
+  Modal,
 } from "react-native";
 import React, { useCallback, useEffect, useState } from "react";
 import useAuthGuard from "../../hooks/useAuthGuard";
 import { router, useFocusEffect } from "expo-router";
 import { useAuth } from "../context/AuthContext";
 import { useCart } from "../context/CartContext";
-import Modal from "react-native-modal";
-import CardPaymentView from "../event/[id]/cardPayment";
-import QrPaymentView from "../event/[id]/qrPayment";
 import { images } from "../../constants";
 
 const Profile = () => {
@@ -42,7 +40,6 @@ const Profile = () => {
     // router.push("Login");
   };
 
-
   const closePayment = () => {
     setCardVisible(false);
     setQrVisible(false);
@@ -51,9 +48,6 @@ const Profile = () => {
   const handleBuy = () => {
     setModalVisible(true);
   };
-
-  // console.log(openCart)
-  // setOpenCart(true);
 
   return (
     <SafeAreaView className="flex-1 bg-background">
@@ -105,17 +99,19 @@ const Profile = () => {
           </TouchableOpacity>
         </View>
         <Modal
-          animationIn="slideInUp"
-          animationOut="slideOutDown"
-          swipeDirection={"down"}
-          isVisible={openCart}
-          onSwipeComplete={() => setOpenCart(false)}
-          onBackdropPress={() => setOpenCart(false)}
-          presentationStyle="overFullScreen"
-          backdropOpacity={0.5}
+          visible={openCart}
+          transparent={false}
+          animationType="slide"
+          presentationStyle="pageSheet"
           className="m-0 justify-end"
+          onRequestClose={() => {
+            setOpenCart(false);
+          }}
         >
-          <SafeAreaView className="bg-background rounded-t-3xl items-center mt-10 px-4 overflow-hidden">
+          <SafeAreaView className="flex-1 bg-background items-center">
+            <View className="bg-background-card w-full h-12 items-center justify-center">
+              <Text className="text-white text-xl font-bold">Carrito</Text>
+            </View>
             <ScrollView className="h-full w-full p-2">
               {cart.map((item) => (
                 <TouchableOpacity
@@ -137,9 +133,7 @@ const Profile = () => {
                     >
                       {item.event.name}
                     </Text>
-                    <Text className="text-white-100">
-                      Ticket: {item.name}
-                    </Text>
+                    <Text className="text-white-100">Ticket: {item.name}</Text>
                     <Text className="text-white-100">
                       Cantidad: {item.quantity}
                     </Text>
@@ -205,17 +199,17 @@ const Profile = () => {
             </View>
           </SafeAreaView>
           <Modal
-            animationIn="slideInUp"
-            animationOut="slideOutDown"
-            swipeDirection={cardVisible || qrVisible ? undefined : "down"}
-            isVisible={modalVisible}
-            onSwipeComplete={() => setModalVisible(false)}
-            onBackdropPress={() => setModalVisible(false)}
-            presentationStyle="overFullScreen"
+            visible={modalVisible}
+            transparent={false}
+            animationType="slide"
+            presentationStyle="pageSheet"
             className="m-0 justify-end"
+            onRequestClose={() => {
+              setModalVisible(false);
+            }}
           >
             <SafeAreaView className="bg-background rounded-t-3xl items-center h-[30vh]">
-              <View className="bg-background my-2 h-1 w-[40vw] rounded-full " />
+              <View className="bg-white my-2 h-1 w-[40vw] rounded-full self-center" />
               <Text className="text-white">Pagar con</Text>
               <View className="flex-row mt-4">
                 <TouchableOpacity
@@ -244,8 +238,8 @@ const Profile = () => {
                 </TouchableOpacity>
               </View>
             </SafeAreaView>
-            <CardPaymentView visible={cardVisible} onClose={closePayment} />
-            <QrPaymentView visible={qrVisible} onClose={closePayment} />
+            {/* <CardPaymentView visible={cardVisible} onClose={closePayment} /> */}
+            {/* <QrPaymentView visible={qrVisible} onClose={closePayment} /> */}
           </Modal>
         </Modal>
       </View>

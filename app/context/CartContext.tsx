@@ -12,19 +12,35 @@ interface EventType {
   is_virtual_event?: boolean;
 }
 
+interface TicketType {
+  id: string;
+  name: string;
+  price: string;
+  available: number;
+  currency: { code: string };
+  schedure: { id: string; date: string };
+  image: string;
+  is_personal: boolean;
+  is_numbered: boolean;
+}
+
 interface CartItem {
   ticketId: string;
   quantity: number;
   name: string;
-  price?: string;
-  currency?: string;
-  is_numbered?: boolean;
+  price: string;
+  currency: string;
+  isNumbered: boolean;
   event: EventType;
+  date: string;
+  personalInfo?: { fullName: string; email: string };
+  userId?: string;
 }
 
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
+  removeFromCart: (ticketId: string) => void;
   clearCart: () => void;
   increaseQuantity: (ticketId: string) => void;
   decreaseQuantity: (ticketId: string) => void;
@@ -38,16 +54,26 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
 
   const addToCart = (item: CartItem) => {
     setCart((prevCart) => {
-      const existingItem = prevCart.find((i) => i.ticketId === item.ticketId);
+      const existingItem = prevCart.find(
+        (i) => i.ticketId === item.ticketId && i.date === item.date
+      );
       if (existingItem) {
+        // If the same ticket type AND date exists, increment quantity
         return prevCart.map((i) =>
-          i.ticketId === item.ticketId
+          i.ticketId === item.ticketId && i.date === item.date
             ? { ...i, quantity: i.quantity + item.quantity }
             : i
         );
       }
+      // Otherwise, add as a new item
       return [...prevCart, item];
     });
+  };
+
+  const removeFromCart = (ticketId: string) => {
+    setCart((prevCart) =>
+      prevCart.filter((item) => item.ticketId !== ticketId)
+    );
   };
 
   const clearCart = () => {
@@ -65,15 +91,14 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   };
 
   const decreaseQuantity = (ticketId: string) => {
-    setCart(
-      (prevCart) =>
-        prevCart
-          .map((item) =>
-            item.ticketId === ticketId
-              ? { ...item, quantity: item.quantity - 1 }
-              : item
-          )
-          .filter((item) => item.quantity > 0) // Elimina el ítem si la cantidad es 0
+    setCart((prevCart) =>
+      prevCart
+        .map((item) =>
+          item.ticketId === ticketId
+            ? { ...item, quantity: item.quantity - 1 }
+            : item
+        )
+        .filter((item) => item.quantity > 0)
     );
   };
 
@@ -89,6 +114,7 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       value={{
         cart,
         addToCart,
+        removeFromCart,
         clearCart,
         increaseQuantity,
         decreaseQuantity,

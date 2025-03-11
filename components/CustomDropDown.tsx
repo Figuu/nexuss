@@ -12,6 +12,7 @@ interface CustomDropDownPickerProps {
   multiple?: boolean;
   mode?: string;
   search?: boolean;
+  zIndex?: number;
 }
 
 const CustomDropDownPicker: React.FC<CustomDropDownPickerProps> = ({
@@ -24,6 +25,7 @@ const CustomDropDownPicker: React.FC<CustomDropDownPickerProps> = ({
   multiple = false,
   mode = "SIMPLE",
   search = false,
+  zIndex
 }) => {
   LogBox.ignoreLogs([
     "VirtualizedLists should never be nested inside plain ScrollViews", // Mensaje exacto
@@ -64,6 +66,8 @@ const CustomDropDownPicker: React.FC<CustomDropDownPickerProps> = ({
       multiple={multiple}
       mode={mode}
       searchable={search}
+      searchPlaceholder="Buscar..."
+      zIndex={zIndex}
     />
   );
 };

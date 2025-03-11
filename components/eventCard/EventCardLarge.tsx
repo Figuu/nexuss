@@ -3,8 +3,14 @@ import React from "react";
 import { images } from "../../constants";
 import { router } from "expo-router";
 
-const EventCardLarge = ({ event }) => {
+interface Event {
+  id: string;
+  name: string;
+  address: string;
+  front_page_image: string;
+}
 
+const EventCardLarge = ({ event }: { event: Event }) => {
   const handlePress = () => {
     router.push(`event/${event.id}`);
   };
