@@ -7,17 +7,15 @@ import {
   TextInput,
   ScrollView,
   Modal,
-  Alert,
   KeyboardAvoidingView,
   Platform,
+  Alert,
 } from "react-native";
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import axios from "axios";
 import { API_URL, useAuth } from "../../context/AuthContext";
-import { router, useFocusEffect } from "expo-router";
-import CardPaymentView from "../../../components/payment/cardPayment";
-import QrPaymentView from "../../../components/payment/qrPayment";
-import { icons, images } from "../../../constants";
+import { router } from "expo-router";
+import { images } from "../../../constants";
 import CustomDropDownPicker from "../../../components/CustomDropDown";
 import { useCart } from "../../context/CartContext";
 import PaymentOptionsModal from "../../../components/payment/paymentOptions";
@@ -68,12 +66,14 @@ const TicketModal: React.FC<TicketModalProps> = ({
   event,
 }) => {
   const { authState } = useAuth();
+  const { addToCart, getCartError } = useCart();
 
   const [schedule, setSchedule] = useState<ScheduleType[]>([]);
   const [tickets, setTickets] = useState<TicketType[]>([]);
   const [numberedTickets, setNumberedTickets] = useState<NumberedTicket[]>([]);
   const [error, setError] = useState("");
   const [quantity, setQuantity] = useState(1);
+  const [isAddingToCart, setIsAddingToCart] = useState(false); // New: Loading state
 
   const [selectedDate, setSelectedDate] = useState<string | null>(null);
   const [selectedTicket, setSelectedTicket] = useState<string | null>(null);
@@ -82,17 +82,14 @@ const TicketModal: React.FC<TicketModalProps> = ({
   >(null);
 
   const [modalVisible, setModalVisible] = useState(false);
-  const [cardVisible, setCardVisible] = useState(false);
-  const [qrVisible, setQrVisible] = useState(false);
-
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
+
+  const [qrVisible, setQrVisible] = useState(false);
 
   const [dropdownDateOpen, setDropdownDateOpen] = useState(false);
   const [dropdownTicketOpen, setDropdownTicketOpen] = useState(false);
   const [dropdownNumberedOpen, setDropdownNumberedOpen] = useState(false);
-
-  const { addToCart } = useCart();
 
   const filteredTickets = selectedDate
     ? tickets.filter((ticket) => ticket.schedure.id === selectedDate)
@@ -141,7 +138,8 @@ const TicketModal: React.FC<TicketModalProps> = ({
     if (ticket?.is_numbered) {
       fetchNumberedTickets(ticket.id);
     } else {
-      setNumberedTickets([]); // Limpiar si no es numerado
+      setNumberedTickets([]);
+      setSelectedNumberedTicket(null);
     }
   }, [selectedTicket, tickets, fetchNumberedTickets]);
 
@@ -156,17 +154,15 @@ const TicketModal: React.FC<TicketModalProps> = ({
   };
 
   const [paymentData, setPaymentData] = useState<any>(null);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   const handleBuy = () => {
     const ticket = tickets.find((t) => t.id === selectedTicket);
-    if (!ticket) {
-      setError("Por favor, selecciona un ticket.");
+    if (!ticket || !selectedDate) {
+      setError("Por favor, selecciona una fecha y un ticket.");
       return;
     }
-
     const paymentData = {
-      event: event,
+      event,
       ticketTypeId: ticket.id,
       quantity,
       totalAmount: parseFloat(ticket.price) * quantity,
@@ -175,62 +171,82 @@ const TicketModal: React.FC<TicketModalProps> = ({
       email,
       numberedTicketId: selectedNumberedTicket,
     };
-
     setModalVisible(true);
-    setPaymentData(paymentData); // Guardamos los datos de pago en el estado
+    setPaymentData(paymentData);
   };
 
   const addCart = () => {
     const ticket = tickets.find((t) => t.id === selectedTicket);
     const selectedSchedule = schedule.find((s) => s.id === selectedDate);
     if (!ticket || !selectedSchedule) {
-      setError("Por favor, selecciona una fecha y un ticket.");
+      Alert.alert("Error", "Por favor, selecciona una fecha y un ticket.");
       return;
     }
     if (ticket.is_personal && (!fullName || !email)) {
-      setError("Por favor, completa todos los campos requeridos.");
+      Alert.alert("Error", "Por favor, completa todos los campos requeridos.");
+      return;
+    }
+    if (ticket.is_numbered && !selectedNumberedTicket) {
+      Alert.alert("Error", "Por favor, selecciona al menos un asiento.");
       return;
     }
 
-    const cartItem: CartItem = {
+    setIsAddingToCart(true);
+
+    const selectedNumberedTicketsArray = selectedNumberedTicket
+      ? Array.isArray(selectedNumberedTicket)
+        ? selectedNumberedTicket
+        : [selectedNumberedTicket]
+      : [];
+
+    const numberedTicketDetails = ticket.is_numbered
+      ? numberedTickets.filter((nt) =>
+          selectedNumberedTicketsArray.includes(nt.id)
+        )
+      : [];
+
+    const cartItem = {
       ticketId: ticket.id,
-      quantity,
+      quantity: ticket.is_numbered ? numberedTicketDetails.length : quantity,
       name: ticket.name,
       price: ticket.price,
       currency: ticket.currency.code,
       isNumbered: ticket.is_numbered,
+      numberedTickets: ticket.is_numbered ? numberedTicketDetails : undefined,
       event,
-      date: selectedSchedule.date, // Full ISO date from schedule
+      date: selectedSchedule.date,
       personalInfo: ticket.is_personal ? { fullName, email } : undefined,
-      userId: authState?.user?.id, // Optional: Add user ID if available
+      userId: authState?.user?.id,
     };
 
     addToCart(cartItem);
-    setError("");
+    const cartError = getCartError();
+    if (cartError) {
+      Alert.alert("Error", cartError);
+      setIsAddingToCart(false);
+      return;
+    }
+    setIsAddingToCart(false);
+
+    // Reset form
+    setQuantity(1);
+    setSelectedDate(null);
+    setSelectedTicket(null);
+    setSelectedNumberedTicket(null);
+    setFullName("");
+    setEmail("");
     onClose();
   };
 
   const handleClose = () => {
-    if (cardVisible || qrVisible) {
-      closePayment();
-    }
-
-    setTimeout(() => {
-      setModalVisible(false);
-
-      setTimeout(() => {
-        onClose();
-      }, 100);
-    }, 100);
+    setModalVisible(false);
+    setTimeout(() => onClose(), 100);
   };
 
   const closePayment = () => {
-    setCardVisible(false);
+    // setCardVisible(false);
     setQrVisible(false);
-
-    setTimeout(() => {
-      setModalVisible(false);
-    }, 100);
+    setTimeout(() => setModalVisible(false), 100);
   };
 
   return (
@@ -239,18 +255,17 @@ const TicketModal: React.FC<TicketModalProps> = ({
       transparent={false}
       animationType="slide"
       presentationStyle="pageSheet"
-      className="m-0 justify-end"
-      onRequestClose={() => {
-        onClose();
-      }}
+      onRequestClose={onClose}
     >
       <SafeAreaView className="flex-1 bg-background">
         <View className="bg-white my-2 h-1 w-[40vw] rounded-full self-center" />
         <Text className="text-center text-white text-2xl font-bold">
           {event.name}
         </Text>
+        {error ? (
+          <Text className="text-red-500 text-center mt-2">{error}</Text>
+        ) : null}
 
-        {/* Dropdown Section */}
         <View className="w-full px-4 mt-4">
           <View className="flex-row w-full my-2">
             <View className="flex-[5] mr-2">
@@ -305,10 +320,9 @@ const TicketModal: React.FC<TicketModalProps> = ({
           )}
         </View>
 
-        {/* Scrollable Content */}
         <KeyboardAvoidingView
           behavior={Platform.OS === "ios" ? "padding" : "height"}
-          className={`flex-1 ${Platform.OS === "ios" ? "-mb-4" : "mb-2"}`} 
+          className={`flex-1 ${Platform.OS === "ios" ? "-mb-4" : "mb-2"}`}
           keyboardVerticalOffset={Platform.OS === "ios" ? 60 : 0}
         >
           <ScrollView
@@ -377,6 +391,7 @@ const TicketModal: React.FC<TicketModalProps> = ({
                         autoComplete="email"
                         spellCheck={false}
                         autoCorrect={false}
+                        keyboardType="email-address"
                       />
                     </View>
                   </View>
@@ -384,7 +399,6 @@ const TicketModal: React.FC<TicketModalProps> = ({
             </View>
           </ScrollView>
 
-          {/* Footer Buttons */}
           <View className="absolute bottom-0 flex-row justify-between w-max space-x-2 mx-2 items-center">
             <TouchableOpacity
               className="bg-background-card p-4 rounded-xl flex-1 h-14"
@@ -405,12 +419,17 @@ const TicketModal: React.FC<TicketModalProps> = ({
             <TouchableOpacity
               className="bg-primary items-center justify-center rounded-xl aspect-square h-14"
               onPress={addCart}
+              disabled={isAddingToCart}
             >
-              <Image
-                source={images.addCart}
-                className="w-10 h-10"
-                resizeMode="contain"
-              />
+              {isAddingToCart ? (
+                <Text className="text-white">...</Text>
+              ) : (
+                <Image
+                  source={images.addCart}
+                  className="w-10 h-10"
+                  resizeMode="contain"
+                />
+              )}
             </TouchableOpacity>
           </View>
         </KeyboardAvoidingView>
@@ -429,3 +448,22 @@ const TicketModal: React.FC<TicketModalProps> = ({
 };
 
 export default TicketModal;
+
+// const handleClose = () => {
+//   if (cardVisible || qrVisible) {
+//     closePayment();
+//   }
+//   setTimeout(() => {
+//     setModalVisible(false);
+//     setTimeout(() => {
+//       onClose();
+//     }, 100);
+//   }, 100);
+// };
+// const closePayment = () => {
+//   setCardVisible(false);
+//   setQrVisible(false);
+//   setTimeout(() => {
+//     setModalVisible(false);
+//   }, 100);
+// };

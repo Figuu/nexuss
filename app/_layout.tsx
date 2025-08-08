@@ -1,9 +1,10 @@
-import { ActivityIndicator, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Image, StyleSheet, Text, View } from "react-native";
 import { Slot, SplashScreen, Stack } from "expo-router";
 import { useFonts } from "expo-font";
 import { useEffect, useState } from "react";
 import { AuthProvider } from "./context/AuthContext";
 import { CartProvider } from "./context/CartContext";
+import { images } from "../constants";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -30,10 +31,26 @@ const RootLayout = () => {
   });
 
   const [isAuthLoading, setIsAuthLoading] = useState(true);
+  const [imagesPreloaded, setImagesPreloaded] = useState(false);
+
+  const imagesToPreload = [
+    images.gradient,
+    images.addCart,
+    images.card,
+    images.qr,
+    // Ejemplo: images.icon1, images.icon2, etc.
+  ];
 
   useEffect(() => {
     const initializeApp = async () => {
       if (error) throw error;
+
+      try {
+        setImagesPreloaded(true);
+      } catch (e) {
+        console.error("Error durante la inicialización de imágenes:", e);
+        setImagesPreloaded(true);
+      }
 
       if (fontsLoaded) {
         try {
@@ -48,9 +65,25 @@ const RootLayout = () => {
     initializeApp();
   }, [fontsLoaded, error]);
 
-  if (!fontsLoaded || isAuthLoading) {
+  // if (!fontsLoaded || isAuthLoading) {
+  //   return (
+  //     <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+  //       <ActivityIndicator size="large" />
+  //     </View>
+  //   );
+  // }
+  if (!fontsLoaded || !imagesPreloaded || isAuthLoading) {
     return (
       <View style={{ flex: 1, justifyContent: "center", alignItems: "center" }}>
+        {/* Precarga de imágenes locales renderizándolas fuera de la vista */}
+        {imagesToPreload.map((image, index) => (
+          <Image
+            key={index}
+            source={image}
+            style={{ width: 1, height: 1, position: "absolute", opacity: 0 }}
+            // onLoad={() => console.log(`Imagen ${index} precargada`)} // Opcional: para depuración
+          />
+        ))}
         <ActivityIndicator size="large" />
       </View>
     );

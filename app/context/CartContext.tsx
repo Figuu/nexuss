@@ -12,16 +12,11 @@ interface EventType {
   is_virtual_event?: boolean;
 }
 
-interface TicketType {
+interface NumberedTicket {
   id: string;
-  name: string;
-  price: string;
-  available: number;
-  currency: { code: string };
-  schedure: { id: string; date: string };
-  image: string;
-  is_personal: boolean;
-  is_numbered: boolean;
+  prefix: string;
+  number: number;
+  status: number;
 }
 
 interface CartItem {
@@ -31,12 +26,12 @@ interface CartItem {
   price: string;
   currency: string;
   isNumbered: boolean;
+  numberedTickets?: NumberedTicket[];
   event: EventType;
   date: string;
   personalInfo?: { fullName: string; email: string };
   userId?: string;
 }
-
 interface CartContextType {
   cart: CartItem[];
   addToCart: (item: CartItem) => void;
@@ -45,12 +40,14 @@ interface CartContextType {
   increaseQuantity: (ticketId: string) => void;
   decreaseQuantity: (ticketId: string) => void;
   totalAmount: () => number;
+  getCartError: () => string | null;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider = ({ children }: { children: React.ReactNode }) => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [cartError, setCartError] = useState<string | null>(null); // New: Error state
 
   const addToCart = (item: CartItem) => {
     setCart((prevCart) => {
@@ -58,14 +55,24 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         (i) => i.ticketId === item.ticketId && i.date === item.date
       );
       if (existingItem) {
-        // If the same ticket type AND date exists, increment quantity
+        // if (existingItem.personalInfo || existingItem.isNumbered) {
+        //   return prevCart.map((i) =>
+        //     i.ticketId === item.ticketId && i.date === item.date ? item : i
+        //   );
+        // }
+        if (existingItem.isNumbered || existingItem.personalInfo) {
+          setCartError(
+            "No es posible agregar más tickets de este tipo al carrito."
+          );
+          return prevCart; // No change, error set
+        }
         return prevCart.map((i) =>
           i.ticketId === item.ticketId && i.date === item.date
             ? { ...i, quantity: i.quantity + item.quantity }
             : i
         );
       }
-      // Otherwise, add as a new item
+      setCartError(null); // Clear error if successful
       return [...prevCart, item];
     });
   };
@@ -74,32 +81,76 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
     setCart((prevCart) =>
       prevCart.filter((item) => item.ticketId !== ticketId)
     );
+    setCartError(null);
   };
 
   const clearCart = () => {
     setCart([]);
+    setCartError(null);
   };
 
+  // const increaseQuantity = (ticketId: string) => {
+  //   setCart((prevCart) =>
+  //     prevCart.map((item) => {
+  //       if (item.ticketId === ticketId) {
+  //         if (item.personalInfo || item.isNumbered) {
+  //           return item; // No change
+  //         }
+  //         return { ...item, quantity: item.quantity + 1 };
+  //       }
+  //       return item;
+  //     })
+  //   );
+  // };
+
+  // const decreaseQuantity = (ticketId: string) => {
+  //   setCart((prevCart) =>
+  //     prevCart
+  //       .map((item) => {
+  //         if (item.ticketId === ticketId) {
+  //           // Prevent decrease if personal or numbered
+  //           if (item.personalInfo || item.isNumbered) {
+  //             return item; // No change
+  //           }
+  //           return { ...item, quantity: item.quantity - 1 };
+  //         }
+  //         return item;
+  //       })
+  //       .filter((item) => item.quantity > 0)
+  //   );
+  // };
   const increaseQuantity = (ticketId: string) => {
     setCart((prevCart) =>
-      prevCart.map((item) =>
-        item.ticketId === ticketId
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      )
+      prevCart.map((item) => {
+        if (
+          item.ticketId === ticketId &&
+          !item.isNumbered &&
+          !item.personalInfo
+        ) {
+          return { ...item, quantity: item.quantity + 1 };
+        }
+        return item;
+      })
     );
+    setCartError(null);
   };
 
   const decreaseQuantity = (ticketId: string) => {
     setCart((prevCart) =>
       prevCart
-        .map((item) =>
-          item.ticketId === ticketId
-            ? { ...item, quantity: item.quantity - 1 }
-            : item
-        )
+        .map((item) => {
+          if (
+            item.ticketId === ticketId &&
+            !item.isNumbered &&
+            !item.personalInfo
+          ) {
+            return { ...item, quantity: item.quantity - 1 };
+          }
+          return item;
+        })
         .filter((item) => item.quantity > 0)
     );
+    setCartError(null);
   };
 
   const totalAmount = () => {
@@ -108,6 +159,8 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
       return total + item.quantity * (isNaN(price) ? 0 : price);
     }, 0);
   };
+
+  const getCartError = () => cartError;
 
   return (
     <CartContext.Provider
@@ -119,12 +172,14 @@ export const CartProvider = ({ children }: { children: React.ReactNode }) => {
         increaseQuantity,
         decreaseQuantity,
         totalAmount,
+        getCartError,
       }}
     >
       {children}
     </CartContext.Provider>
   );
 };
+
 
 export const useCart = () => {
   const context = useContext(CartContext);
