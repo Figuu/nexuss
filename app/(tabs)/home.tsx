@@ -5,6 +5,7 @@ import { API_URL } from "../context/AuthContext";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { images } from "../../constants";
 import { router } from "expo-router";
+import EventGridSkeleton from "../../components/skeletons/EventGridSkeleton";
 
 interface EventType {
   id: string;
@@ -20,6 +21,7 @@ const Home = () => {
   const [nextEvents, setNexEvents] = useState<EventType[]>([]);
   const [sportsEvents, setSportsEvents] = useState<EventType[]>([]);
   const [culturalEvents, setCulturalEvents] = useState<EventType[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let isMounted = true;
@@ -66,6 +68,7 @@ const Home = () => {
           });
 
           setNexEvents(sortedEvents);
+          setLoading(false);
         }
       } catch (error) {
         console.error("Error fetching user data:", error);
@@ -158,7 +161,9 @@ const Home = () => {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} className="">
-            {nextEvents.length > 0 ? (
+            {loading ? (
+              <EventGridSkeleton count={3} />
+            ) : nextEvents.length > 0 ? (
               nextEvents.map((next) => (
                 <TouchableOpacity
                   key={next.id}
@@ -191,7 +196,9 @@ const Home = () => {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} className="">
-            {sportsEvents.length > 0 ? (
+            {loading ? (
+              <EventGridSkeleton count={3} />
+            ) : sportsEvents.length > 0 ? (
               sportsEvents.map((sport) => (
                 <TouchableOpacity
                   key={sport.id}
@@ -226,7 +233,9 @@ const Home = () => {
             </TouchableOpacity>
           </View>
           <ScrollView horizontal={true} className="">
-            {culturalEvents.length > 0 ? (
+            {loading ? (
+              <EventGridSkeleton count={3} />
+            ) : culturalEvents.length > 0 ? (
               culturalEvents.map((cultural) => (
                 <TouchableOpacity
                   key={cultural.id}
