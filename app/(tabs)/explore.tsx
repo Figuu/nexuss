@@ -10,6 +10,8 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 import EventCardLarge from "../../components/eventCard/EventCardLarge";
 import PortalCard from "../../components/portalCard/PortalCard";
+import EventCardSkeleton from "../../components/skeletons/EventCardSkeleton";
+import PortalCardSkeleton from "../../components/skeletons/PortalCardSkeleton";
 import { API_URL } from "../context/AuthContext";
 import axios from "axios";
 
@@ -44,6 +46,7 @@ const Explore = () => {
 
   // Función para obtener eventos desde la API
   const fetchEvents = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(API_URL + "/event", {
         params: {
@@ -61,6 +64,7 @@ const Explore = () => {
 
   // Función para obtener portales desde la API
   const fetchPortals = async () => {
+    setLoading(true);
     try {
       const response = await axios.get(API_URL + "/portal", {
         params: {
@@ -115,7 +119,14 @@ const Explore = () => {
       <View className="justify-center h-max mb-[5vh]">
         <ScrollView className="">
           {loading ? (
-            <Text className="text-white">Cargando...</Text>
+            // Show skeleton loaders while loading
+            Array.from({ length: 5 }).map((_, index) => (
+              showingEvents ? (
+                <EventCardSkeleton key={index} />
+              ) : (
+                <PortalCardSkeleton key={index} />
+              )
+            ))
           ) : showingEvents ? (
             events?.map((event) => (
               <EventCardLarge key={event.id} event={event} />
