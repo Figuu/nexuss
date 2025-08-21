@@ -12,6 +12,7 @@ import { API_URL, useAuth } from "../context/AuthContext";
 import useAuthGuard from "../../hooks/useAuthGuard";
 import { useFocusEffect } from "expo-router";
 import TikcetCard from "../../components/TicketCard";
+import TicketCardSkeleton from "../../components/skeletons/TicketCardSkeleton";
 
 interface Ticket {
   id: string;
@@ -109,7 +110,12 @@ const Tickets = () => {
           className="
         "
         >
-          {tickets.length > 0 ? (
+          {loading ? (
+            // Show skeleton loaders while loading
+            Array.from({ length: 3 }).map((_, index) => (
+              <TicketCardSkeleton key={index} />
+            ))
+          ) : tickets.length > 0 ? (
             tickets.map((ticket) => <TikcetCard key={ticket.id} ticket={ticket} />)
           ) : (
             <Text>No tickets</Text>
