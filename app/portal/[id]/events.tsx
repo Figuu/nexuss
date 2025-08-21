@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, ActivityIndicator, TouchableOpacity } from 'react-native';
 import { useRoute } from '@react-navigation/native';
 import { API_URL } from "../../context/AuthContext";
+import EventCardSkeleton from "../../../components/skeletons/EventCardSkeleton";
 
 interface Event {
   id: string;
@@ -41,7 +42,13 @@ const PortalEvents = () => {
   );
 
   if (loading) {
-    return <ActivityIndicator size={'large'} color="#ffffff" className="mt-10" />;
+    return (
+      <View className="flex-1 p-4 bg-background">
+        {Array.from({ length: 3 }).map((_, index) => (
+          <EventCardSkeleton key={index} />
+        ))}
+      </View>
+    );
   }
 
   return (

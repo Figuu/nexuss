@@ -1,6 +1,7 @@
 import { View, Text, SafeAreaView, ScrollView } from "react-native";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import EventCardLarge from "../../../components/eventCard/EventCardLarge";
+import EventCardSkeleton from "../../../components/skeletons/EventCardSkeleton";
 import { useGlobalSearchParams } from "expo-router";
 import { API_URL } from "../../context/AuthContext";
 import axios from "axios";
@@ -18,7 +19,7 @@ const EventCategories = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useState(() => {
+  useEffect(() => {
     const fetchEvents = async () => {
       try {
         const response = await axios.get(API_URL + "/event", {
@@ -30,18 +31,25 @@ const EventCategories = () => {
         setEvents(response.data);
       } catch (err) {
         setError("Error al cargar los eventos");
+      } finally {
+        setLoading(false);
       }
     };
     if (id && events === null) {
       fetchEvents();
     }
-  });
+  }, [id]);
 
   return (
     <SafeAreaView className="bg-background h-max px-4">
       <View className="justify-center h-full">
         <ScrollView>
-          {events?.map((event) => (
+          {loading ? (
+            // Show skeleton loaders while loading
+            Array.from({ length: 5 }).map((_, index) => (
+              <EventCardSkeleton key={index} />
+            ))
+          ) : events?.map((event) => (
             <EventCardLarge key={event?.id} event={event} />
           ))}
         </ScrollView>

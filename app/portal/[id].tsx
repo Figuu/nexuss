@@ -6,6 +6,7 @@ import { images } from "../../constants";
 import axios from "axios";
 import { API_URL } from "../context/AuthContext";
 import { FontAwesome6 } from "@expo/vector-icons";
+import PortalDetailSkeleton from "../../components/skeletons/PortalDetailSkeleton";
 
 interface PortalType {
   cover_image: string;
@@ -50,10 +51,9 @@ const Portal = () => {
   }, []);
 
   if (loading) {
-    // Mostrar pantalla de carga cuando loading sea true
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-background">
-        <ActivityIndicator size={"large"} color="#ffffff" />
+      <SafeAreaView className="flex-1 bg-background">
+        <PortalDetailSkeleton />
       </SafeAreaView>
     );
   }
