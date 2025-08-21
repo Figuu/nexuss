@@ -5,9 +5,13 @@ import { Image, Text, View } from "react-native";
 import { useColorScheme } from "../../hooks/useColorScheme";
 import { Colors } from "../../constants/Colors";
 import { FontAwesome6 } from "@expo/vector-icons";
+import { useCart } from "../context/CartContext";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { cart } = useCart();
+  
+  const cartItemCount = cart.reduce((sum, item) => sum + item.quantity, 0);
 
   return (
     <>
@@ -53,6 +57,48 @@ export default function TabLayout() {
                 size={28}
                 color={color}
               />
+            ),
+          }}
+        />
+        <Tabs.Screen
+          name="cart"
+          options={{
+            title: "Carrito",
+            tabBarLabelStyle: {
+              fontWeight: "bold",
+              fontSize: 11,
+            },
+            tabBarIcon: ({ color, focused }) => (
+              <View style={{ position: 'relative' }}>
+                <FontAwesome6
+                  name={focused ? "shopping-cart" : "shopping-cart"}
+                  size={28}
+                  color={color}
+                />
+                {cartItemCount > 0 && (
+                  <View style={{
+                    position: 'absolute',
+                    top: -5,
+                    right: -8,
+                    backgroundColor: '#ef4444',
+                    borderRadius: 10,
+                    minWidth: 20,
+                    height: 20,
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    borderWidth: 2,
+                    borderColor: Colors[colorScheme ?? "light"].tabBackground,
+                  }}>
+                    <Text style={{
+                      color: 'white',
+                      fontSize: 10,
+                      fontWeight: 'bold',
+                    }}>
+                      {cartItemCount > 99 ? '99+' : cartItemCount}
+                    </Text>
+                  </View>
+                )}
+              </View>
             ),
           }}
         />
