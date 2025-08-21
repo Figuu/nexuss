@@ -111,10 +111,7 @@ const RootLayout = () => {
             name="event/[id]/ticketModal"
             options={{ headerShown: false }}
           />
-          <Stack.Screen
-            name="event/[id]/payment"
-            options={{ headerShown: false }}
-          />
+
           <Stack.Screen name="portal/[id]" options={{ headerShown: false }} />
           <Stack.Screen
             name="portal/[id]/events"
