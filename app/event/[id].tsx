@@ -9,12 +9,88 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { router, useGlobalSearchParams } from "expo-router";
-import MapView, { Marker } from "react-native-maps";
 import { images } from "../../constants";
 import axios from "axios";
 import { API_URL } from "../context/AuthContext";
 import TicketModal from "./[id]/ticketModal";
 import useAuthGuard from "../../hooks/useAuthGuard";
+import EventDetailSkeleton from "../../components/skeletons/EventDetailSkeleton";
+
+// Free Map Component using react-native-maps with OpenStreetMap
+const FreeMapView = ({ latitude, longitude, title, description }: any) => {
+  // Conditional import for MapView
+  let MapView: any = null;
+  let Marker: any = null;
+
+  try {
+    const MapsModule = require("react-native-maps");
+    MapView = MapsModule.default;
+    Marker = MapsModule.Marker;
+  } catch (error) {
+    console.warn("react-native-maps not available:", error);
+  }
+
+  if (!MapView) {
+    return (
+      <View className="w-full h-64 bg-gray-800 rounded-lg justify-center items-center">
+        <Text className="text-white text-center mb-2">📍 {title}</Text>
+        <Text className="text-gray-300 text-center text-sm">{description}</Text>
+        <Text className="text-gray-400 text-center text-xs mt-2">
+          Coordenadas: {latitude}, {longitude}
+        </Text>
+      </View>
+    );
+  }
+
+  return (
+    <MapView
+      className="w-full h-64"
+      initialRegion={{
+        latitude: latitude,
+        longitude: longitude,
+        latitudeDelta: 0.01,
+        longitudeDelta: 0.01,
+      }}
+      mapType="standard"
+      showsUserLocation={false}
+      showsMyLocationButton={false}
+      showsCompass={true}
+      showsScale={true}
+      showsTraffic={false}
+      showsBuildings={true}
+      showsIndoors={true}
+      showsIndoorLevelPicker={false}
+      showsPointsOfInterest={true}
+      showsMapToolbar={false}
+      toolbarEnabled={false}
+      loadingEnabled={true}
+      loadingIndicatorColor="#ffffff"
+      loadingBackgroundColor="#242424"
+      moveOnMarkerPress={true}
+      pitchEnabled={true}
+      rotateEnabled={true}
+      scrollEnabled={true}
+      zoomEnabled={true}
+      zoomTapEnabled={true}
+      zoomControlEnabled={true}
+      liteMode={false}
+      mapPadding={{ top: 0, right: 0, bottom: 0, left: 0 }}
+    >
+      <Marker
+        coordinate={{
+          latitude: latitude,
+          longitude: longitude,
+        }}
+        title={title}
+        description={description}
+        pinColor="#FE4949"
+        opacity={1}
+        draggable={false}
+        tracksViewChanges={false}
+      />
+    </MapView>
+  );
+};
 
 interface EventType {
   id: string;
@@ -86,8 +162,8 @@ const Event = () => {
 
   if (loading) {
     return (
-      <SafeAreaView className="flex-1 justify-center items-center bg-background">
-        <ActivityIndicator size={"large"} color="#ffffff" />
+      <SafeAreaView className="flex-1 bg-background">
+        <EventDetailSkeleton />
       </SafeAreaView>
     );
   }
@@ -165,24 +241,22 @@ const Event = () => {
 
               {/* Mapa */}
               <View className="w-full mt-2 mb-24 rounded-lg overflow-hidden">
-                <MapView
-                  className="w-full h-64"
-                  initialRegion={{
-                    latitude: parseFloat(event.latitude),
-                    longitude: parseFloat(event.longitude),
-                    latitudeDelta: 0.01,
-                    longitudeDelta: 0.01,
-                  }}
-                >
-                  <Marker
-                    coordinate={{
-                      latitude: parseFloat(event.latitude),
-                      longitude: parseFloat(event.longitude),
-                    }}
+                {event.latitude && event.longitude ? (
+                  <FreeMapView
+                    latitude={parseFloat(event.latitude)}
+                    longitude={parseFloat(event.longitude)}
                     title={event.name}
                     description={event.address}
                   />
-                </MapView>
+                ) : (
+                  <View className="w-full h-64 bg-gray-800 rounded-lg justify-center items-center">
+                    <Text className="text-white text-center mb-2">📍 {event.name}</Text>
+                    <Text className="text-gray-300 text-center text-sm">{event.address}</Text>
+                    <Text className="text-gray-400 text-center text-xs mt-2">
+                      Coordenadas: {event.latitude}, {event.longitude}
+                    </Text>
+                  </View>
+                )}
               </View>
             </View>
           </ScrollView>
