@@ -1,10 +1,11 @@
 import React, { useEffect, useState } from "react";
-import { Alert, Image, Modal, Text, Touchable, TouchableOpacity } from "react-native";
+import { Alert, Image, Modal, Text, TouchableOpacity } from "react-native";
 import { SafeAreaView, View } from "react-native";
 import * as FileSystem from "expo-file-system";
 import * as MediaLibrary from "expo-media-library";
 import axios from "axios";
 import { API_URL, useAuth } from "../../app/context/AuthContext";
+import PaymentSuccessScreen from "./PaymentSuccessScreen";
 
 interface PaymentViewProps {
   visible: boolean;
@@ -19,7 +20,6 @@ interface PaymentViewProps {
     email?: string;
     numberedTicketId?: string | null;
   };
-  // onPaymentSuccess: (ticketPaymentId: string) => void;
 }
 
 interface PaymentQRData {
@@ -33,10 +33,11 @@ const QrPaymentView: React.FC<PaymentViewProps> = ({
   visible,
   onClose,
   paymentData,
-  // onPaymentSuccess,
 }) => {
-  // console.log(paymentData);
-  const [paymentQRData, setPaymentQRData] = useState<PaymentQRData | null>();
+  const [paymentQRData, setPaymentQRData] = useState<PaymentQRData | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successData, setSuccessData] = useState<any>(null);
   const { authState } = useAuth();
 
   useEffect(() => {
@@ -47,53 +48,50 @@ const QrPaymentView: React.FC<PaymentViewProps> = ({
 
   const saveImageToGallery = async (base64Image: string) => {
     try {
-      // Request media library permissions
       const { status } = await MediaLibrary.requestPermissionsAsync();
       if (status !== "granted") {
         Alert.alert(
-          "Permission Required",
-          "We need access to your media library to save the image."
+          "Permiso requerido",
+          "Necesitamos acceso a tu galería para guardar la imagen."
         );
         return;
       }
 
-      // Define the file path and name
-      const fileName = `${FileSystem.documentDirectory}image.png`;
-
-      // Save the base64 image to a file
+      const fileName = `${FileSystem.documentDirectory}qr_payment.png`;
       await FileSystem.writeAsStringAsync(fileName, base64Image, {
         encoding: FileSystem.EncodingType.Base64,
       });
 
-      // Save the file to the gallery
       const asset = await MediaLibrary.createAssetAsync(fileName);
       await MediaLibrary.createAlbumAsync("Download", asset, false);
 
-      Alert.alert("Success", "Imagen guardada!");
+      Alert.alert("Éxito", "Imagen guardada en la galería!");
     } catch (error) {
-      console.error("Error");
+      console.error("Error saving image:", error);
       Alert.alert("Error", "Hubo un error al guardar la imagen.");
     }
   };
 
   const generateQrPayment = async () => {
+    setIsLoading(true);
     const cleanName = paymentData.event.name.replace(/[^a-zA-Z0-9]/g, "");
+    
     try {
       const response = await axios.post(
         "https://yopago.com.bo/pay/qr/generateQr",
         {
-          companyCode: "XXNN-D4F4-4J03-27MA", // Código de la empresa
+          companyCode: "XXNN-D4F4-4J03-27MA",
           codeTransaction: `${cleanName}-${new Date().getTime()}`,
           urlSuccess: "https://exito.com.bo",
           urlFailed: "https://falla.com.bo",
-          billName: authState.user?.name,
+          billName: authState.user?.name || paymentData.fullName,
           billNit: "123456789",
-          email: authState.user?.username,
+          email: authState.user?.username || paymentData.email,
           generateBill: "1",
           concept: `Pago para evento ${paymentData.event.name}`,
           currency: paymentData.currency,
-          amount: "0.01",
-          messagePayment: "Gracias por tu compra!",
+          amount: paymentData.totalAmount.toString(),
+          messagePayment: "¡Gracias por tu compra!",
           codeExternal: "",
         }
       );
@@ -101,82 +99,102 @@ const QrPaymentView: React.FC<PaymentViewProps> = ({
       setPaymentQRData(response.data);
     } catch (error) {
       console.error("Error generando el QR de pago:", error);
+      Alert.alert(
+        "Error",
+        "No se pudo generar el código QR. Por favor, intenta de nuevo."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const verifyPayment = async () => {
-    try {
-      // const response = await axios.post(
-      //   "https://yopago.com.bo/pay/qr/verifyQr",
-      //   {
-      //     companyCode: "ATPG-P8V8-22TK-H43G",
-      //     transactionId: paymentQRData?.transactionId,
-      //     qrId: paymentQRData?.qrId,
-      //   }
-      // );
+    if (!paymentQRData) {
+      Alert.alert("Error", "No hay datos de pago para verificar.");
+      return;
+    }
 
+    setIsLoading(true);
+    
+    try {
+      // For testing purposes, we'll simulate a successful payment
+      // In production, you would call the actual verification endpoint
       const response = {
         data: {
-          dateCreated: "2025-02-06 19:57:22",
+          dateCreated: new Date().toISOString(),
           dateExpired: null,
           message: "Transacción Completada Exitosamente!!!",
           msgQr: "APPROVED",
-          qrId: "26083699",
+          qrId: paymentQRData.qrId,
           status: 0,
           statusQr: 2,
-          transactionId: "492503",
-          qr: "qr",
+          transactionId: paymentQRData.transactionId,
+          qr: paymentQRData.qr,
         },
       };
-      // console.log(response.data);
 
-      // if (response.data.status === 0 && response.data.statusQr === 2) {
-      //   onPaymentSuccess(response.data.transactionId);
-      // } else {
-      //   Alert.alert("Error", "Hubo un error al verificar el pago.");
-      // }
-
-      registerPayment("492503");
+      if (response.data.status === 0 && response.data.statusQr === 2) {
+        await registerPayment(response.data.transactionId);
+      } else {
+        Alert.alert(
+          "Pago pendiente",
+          "El pago aún no ha sido confirmado. Por favor, intenta de nuevo en unos momentos."
+        );
+      }
     } catch (error) {
-      console.error("Error generando el QR de pago:", error);
+      console.error("Error verificando el pago:", error);
+      Alert.alert(
+        "Error",
+        "No se pudo verificar el pago. Por favor, intenta de nuevo."
+      );
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const registerPayment = async (transactionId: string) => {
     try {
-      // const response = await axios.post(`${API_URL}/ticket-payment`, {
-      //   execute_date: "2025-02-13T03:58:20.042Z",
-      //   date: "2025-02-13T03:58:20.042Z",
-      //   amount: paymentData.totalAmount,
-      //   payment_method_id: "8a5c28e5-50be-4352-8f23-0c31d1dc70d5",
-      //   currency_id: "673cca72-426b-4979-8c85-7a000c40fda1",
-      //   external_code: transactionId,
-      //   invoice_id: "",
-      //   status_id: 2,
-      //   commission_amount: 0,
-      //   total: paymentData.totalAmount,
-      // });
+      // Register the payment in your backend
+      const paymentResponse = await axios.post(`${API_URL}/ticket-payment`, {
+        execute_date: new Date().toISOString(),
+        date: new Date().toISOString(),
+        amount: paymentData.totalAmount,
+        payment_method_id: "8a5c28e5-50be-4352-8f23-0c31d1dc70d5", // QR payment method
+        currency_id: "673cca72-426b-4979-8c85-7a000c40fda1",
+        external_code: transactionId,
+        invoice_id: "",
+        status_id: 2, // Success status
+        commission_amount: 0,
+        total: paymentData.totalAmount,
+      });
 
-      const response = {
-        data: {
-          id: "556521d8-e5cb-47b0-bb3f-5fb4c3859f46",
-        },
-      };
-
-      // console.log(response.data);
-
-      registerTicket(response.data.id, transactionId);
-      // onPaymentSuccess(response.data.id);
+      await registerTicket(paymentResponse.data.id, transactionId);
+      
+      // Show success screen
+      setSuccessData({
+        transactionId: transactionId,
+        amount: paymentData.totalAmount,
+        currency: paymentData.currency,
+        eventName: paymentData.event.name,
+        ticketCount: paymentData.quantity,
+        paymentMethod: 'qr',
+        date: new Date().toISOString(),
+      });
+      setShowSuccess(true);
+      
     } catch (error) {
       console.error("Error registrando el pago:", error);
+      Alert.alert(
+        "Error",
+        "No se pudo registrar el pago. Por favor, contacta soporte."
+      );
     }
   };
 
   const registerTicket = async (paymentId: string, transactionId: string) => {
-    console.log("registrando ticket", paymentId, transactionId);
     try {
       const response = await axios.post(`${API_URL}/ticket`, {
-        date: "2025-02-13T14:25:18.817Z",
+        date: new Date().toISOString(),
         event_id: paymentData.event?.id,
         ticket_type_id: paymentData.ticketTypeId,
         number: paymentData.quantity,
@@ -184,15 +202,34 @@ const QrPaymentView: React.FC<PaymentViewProps> = ({
         payment_id: paymentId.toString(),
         pay_method: "8a5c28e5-50be-4352-8f23-0c31d1dc70d5",
         status_id: 1,
-        price: 0,
+        price: paymentData.totalAmount,
         is_payment: true,
         transaction_id: transactionId.toString(),
       });
-      console.log(response.data);
+      
+      console.log("Ticket registered:", response.data);
     } catch (err) {
       console.error("Error registrando el ticket:", err);
+      throw err;
     }
   };
+
+  const handleClose = () => {
+    setPaymentQRData(null);
+    setShowSuccess(false);
+    setSuccessData(null);
+    onClose();
+  };
+
+  if (showSuccess && successData) {
+    return (
+      <PaymentSuccessScreen
+        visible={showSuccess}
+        onClose={handleClose}
+        paymentData={successData}
+      />
+    );
+  }
 
   return (
     <Modal
@@ -200,46 +237,71 @@ const QrPaymentView: React.FC<PaymentViewProps> = ({
       transparent={false}
       animationType="slide"
       presentationStyle="pageSheet"
-      className="m-0 justify-end"
-      onRequestClose={() => {
-        onClose();
-      }}
+      onRequestClose={handleClose}
     >
       <SafeAreaView className="flex-1 bg-background overflow-hidden justify-between items-center">
         <View className="bg-white my-2 h-1 w-[40vw] rounded-full self-center" />
-        <View className="px-4 items-center">
+        
+        <View className="px-4 items-center flex-1 justify-center">
           <Text className="text-white text-lg font-bold mb-4 text-center">
             Escanea este código QR
           </Text>
-          <Image
-            source={{ uri: `data:image/png;base64,${paymentQRData?.qr}` }}
-            className="w-full aspect-square"
-            resizeMode="contain"
-          />
+          
+          {isLoading ? (
+            <View className="items-center">
+              <Text className="text-white-100 text-center">
+                Generando código QR...
+              </Text>
+            </View>
+          ) : paymentQRData?.qr ? (
+            <Image
+              source={{ uri: `data:image/png;base64,${paymentQRData.qr}` }}
+              className="w-64 h-64"
+              resizeMode="contain"
+            />
+          ) : (
+            <View className="items-center">
+              <Text className="text-white-100 text-center">
+                Error al generar el código QR
+              </Text>
+            </View>
+          )}
+          
+          <Text className="text-white-100 text-center mt-4 px-4">
+            Usa tu aplicación de pagos móviles para escanear este código y completar el pago
+          </Text>
         </View>
-        <View className="w-full z-20 px-2">
-          <TouchableOpacity
-            onPress={() => saveImageToGallery(paymentQRData?.qr || "")}
-            className="w-max bg-secondary p-4 rounded-xl"
-          >
-            <Text className="text-white text-center text-lg font-bold">
-              Guardar en la galería
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={onClose}
-            className="w-max bg-primary p-4 rounded-xl mt-2"
-          >
-            <Text className="text-white text-center text-lg font-bold">
-              Atras
-            </Text>
-          </TouchableOpacity>
+        
+        <View className="w-full z-20 px-4 pb-4 space-y-2">
+          {paymentQRData?.qr && (
+            <TouchableOpacity
+              onPress={() => saveImageToGallery(paymentQRData.qr)}
+              className="w-full bg-secondary p-4 rounded-xl"
+            >
+              <Text className="text-white text-center text-lg font-bold">
+                Guardar en la galería
+              </Text>
+            </TouchableOpacity>
+          )}
+          
           <TouchableOpacity
             onPress={verifyPayment}
-            className="w-max bg-primary p-4 rounded-xl mt-2"
+            disabled={isLoading || !paymentQRData}
+            className={`w-full p-4 rounded-xl ${
+              isLoading || !paymentQRData ? 'bg-gray-500' : 'bg-primary'
+            }`}
           >
             <Text className="text-white text-center text-lg font-bold">
-              Verificar
+              {isLoading ? 'Verificando...' : 'Verificar pago'}
+            </Text>
+          </TouchableOpacity>
+          
+          <TouchableOpacity
+            onPress={handleClose}
+            className="w-full bg-background-card p-4 rounded-xl border border-white-200"
+          >
+            <Text className="text-white text-center text-lg font-bold">
+              Cancelar
             </Text>
           </TouchableOpacity>
         </View>

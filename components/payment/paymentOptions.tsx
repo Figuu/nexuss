@@ -1,94 +1,3 @@
-// import React from "react";
-// import { View, Text, Image, TouchableOpacity } from "react-native";
-// import Modal from "react-native-modal";
-// import { images } from "../../constants";
-// import QrPaymentView from "./qrPayment";
-
-// interface PaymentModalProps {
-//   visible: boolean;
-//   onClose: () => void;
-//   qrVisible: boolean;
-//   setQrVisible: (visible: boolean) => void;
-//   paymentData: any;
-//   closePayment: () => void;
-// }
-
-// const PaymentOptionsModal: React.FC<PaymentModalProps> = ({
-//   visible,
-//   onClose,
-//   qrVisible,
-//   setQrVisible,
-//   closePayment,
-//   paymentData,
-// }) => {
-//   return (
-//     <Modal
-//       isVisible={visible}
-//       onBackdropPress={onClose}
-//       onSwipeComplete={onClose}
-//       swipeDirection="down"
-//       animationIn="slideInUp"
-//       animationOut="slideOutDown"
-//       animationInTiming={500}
-//       animationOutTiming={500}
-//       backdropTransitionOutTiming={500}
-//       backdropTransitionInTiming={500}
-//       style={{ justifyContent: "flex-end", margin: 0 }}
-//     >
-//       <View className="bg-background rounded-t-3xl p-4 h-[30vh] items-center">
-//         <View className="bg-white my-2 h-1 w-[40vw] rounded-full self-center opacity-50" />
-//         <Text className="text-white text-lg font-semibold">Pagar con</Text>
-//         <View className="flex-row mt-4">
-//           {/* Opción QR */}
-//           <TouchableOpacity
-//             onPress={() => setQrVisible(true)}
-//             className="bg-background-card p-4 ml-2 rounded-lg"
-//           >
-//             <Image
-//               source={images.qr}
-//               className="w-10 h-10"
-//               resizeMode="contain"
-//             />
-//           </TouchableOpacity>
-
-//           {/* Opción Tarjeta */}
-//           <TouchableOpacity
-//             onPress={() => setQrVisible(true)}
-//             className="bg-background-card p-4 ml-2 rounded-lg"
-//           >
-//             <Image
-//               source={images.card}
-//               className="w-10 h-10"
-//               resizeMode="contain"
-//             />
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-
-//       <QrPaymentView
-//         visible={qrVisible}
-//         onClose={onClose}
-//         paymentData={paymentData}
-//       />
-//     </Modal>
-//   );
-// };
-
-// export default PaymentOptionsModal;
-
-// {
-//   /* <TouchableOpacity
-//             onPress={() }
-//             className="bg-background-card p-4 mr-2 rounded-lg"
-//           >
-//             <Image
-//               source={images.card}
-//               className="w-10 h-10"
-//               resizeMode="contain"
-//             />
-//           </TouchableOpacity> */
-// }
-
 import React, { useState, useEffect } from "react";
 import {
   Modal,
@@ -100,6 +9,7 @@ import {
 } from "react-native";
 import { images } from "../../constants";
 import QrPaymentView from "./qrPayment";
+import CardPaymentView from "./cardPayment";
 import {
   GestureHandlerRootView,
   PanGestureHandler,
@@ -112,6 +22,7 @@ interface PaymentModalProps {
   setQrVisible: (visible: boolean) => void;
   paymentData: any;
   closePayment: () => void;
+  onPaymentMethodSelect?: (method: 'qr' | 'card') => void;
 }
 
 const PaymentOptionsModal: React.FC<PaymentModalProps> = ({
@@ -121,11 +32,13 @@ const PaymentOptionsModal: React.FC<PaymentModalProps> = ({
   setQrVisible,
   paymentData,
   closePayment,
+  onPaymentMethodSelect,
 }) => {
-  const [fadeAnim] = useState(new Animated.Value(0)); // Animación para el fondo
-  const [translateY] = useState(new Animated.Value(0)); // Animación para deslizar el modal
+  const [fadeAnim] = useState(new Animated.Value(0));
+  const [translateY] = useState(new Animated.Value(0));
+  const [cardVisible, setCardVisible] = useState(false);
 
-  // Manejar la animación de apertura y cierre
+  // Handle opening and closing animations
   useEffect(() => {
     if (visible) {
       Animated.parallel([
@@ -148,7 +61,7 @@ const PaymentOptionsModal: React.FC<PaymentModalProps> = ({
           useNativeDriver: true,
         }),
         Animated.timing(translateY, {
-          toValue: 500, // Ajustado para asegurar que salga completamente
+          toValue: 500,
           duration: 300,
           useNativeDriver: true,
         }),
@@ -156,17 +69,17 @@ const PaymentOptionsModal: React.FC<PaymentModalProps> = ({
     }
   }, [visible]);
 
-  // Manejar el gesto de deslizar hacia abajo
+  // Handle swipe down gesture
   const onGestureEvent = Animated.event(
     [{ nativeEvent: { translationY: translateY } }],
     { useNativeDriver: true }
   );
 
   const onHandlerStateChange = (event: any) => {
-    if (event.nativeEvent.state === 5) { // State.END
-      if (event.nativeEvent.translationY > 100) { // Umbral para cerrar
+    if (event.nativeEvent.state === 5) {
+      if (event.nativeEvent.translationY > 100) {
         Animated.timing(translateY, {
-          toValue: 500, // Ajustado para asegurar que salga completamente
+          toValue: 500,
           duration: 200,
           useNativeDriver: true,
         }).start(() => onClose());
@@ -180,6 +93,32 @@ const PaymentOptionsModal: React.FC<PaymentModalProps> = ({
     }
   };
 
+  const handlePaymentMethodSelect = (method: 'qr' | 'card') => {
+    if (onPaymentMethodSelect) {
+      // Use the new callback if provided
+      onPaymentMethodSelect(method);
+    } else {
+      // Fallback to the old behavior
+      if (method === 'qr') {
+        setQrVisible(true);
+      } else {
+        setCardVisible(true);
+      }
+    }
+  };
+
+  const handlePaymentSuccess = (paymentId: string) => {
+    console.log("Payment successful:", paymentId);
+    closePayment();
+    onClose();
+  };
+
+  const handleClose = () => {
+    setCardVisible(false);
+    setQrVisible(false);
+    onClose();
+  };
+
   return (
     <Modal
       transparent={true}
@@ -187,39 +126,34 @@ const PaymentOptionsModal: React.FC<PaymentModalProps> = ({
       onRequestClose={onClose}
     >
       <Animated.View
-        className="flex-1 bg-black/50" // Fondo cubre toda la pantalla
-        style={{ opacity: fadeAnim }} // Controla la opacidad del fondo
+        className="flex-1 bg-black/50"
+        style={{ opacity: fadeAnim }}
       >
-        {/* Fondo oscuro clickable para cerrar */}
         <TouchableOpacity
-          className="absolute h-full w-full" // Cubre toda la pantalla
+          className="absolute h-full w-full"
           activeOpacity={1}
-          onPress={onClose} // Cierra el modal al tocar fuera
+          onPress={onClose}
         />
 
-        {/* Contenedor del bottom sheet con gesto */}
-        <GestureHandlerRootView  className="flex-1 justify-end">
+        <GestureHandlerRootView className="flex-1 justify-end">
           <PanGestureHandler
             onGestureEvent={onGestureEvent}
             onHandlerStateChange={onHandlerStateChange}
           >
             <Animated.View
-              className="bg-background-card rounded-t-3xl py-2 h-[25%] w-full items-center" // Modal ocupa 50%
-              style={{ transform: [{ translateY }] }} // Animación de deslizamiento
+              className="bg-background-card rounded-t-3xl py-2 h-[25%] w-full items-center"
+              style={{ transform: [{ translateY }] }}
             >
-              {/* Indicador de deslizamiento (clickable para cerrar) */}
               <TouchableOpacity onPress={onClose}>
                 <View className="bg-white my-2 h-1 w-[40%] rounded-full self-center opacity-50" />
               </TouchableOpacity>
 
-              {/* Título */}
               <Text className="text-white text-lg font-semibold">Pagar con</Text>
 
-              {/* Opciones de pago */}
               <View className="flex-row mt-4">
-                {/* Opción QR */}
+                {/* QR Payment Option */}
                 <TouchableOpacity
-                  onPress={() => setQrVisible(true)}
+                  onPress={() => handlePaymentMethodSelect('qr')}
                   className="bg-background p-4 ml-2 rounded-lg"
                 >
                   <Image
@@ -229,9 +163,9 @@ const PaymentOptionsModal: React.FC<PaymentModalProps> = ({
                   />
                 </TouchableOpacity>
 
-                {/* Opción Tarjeta */}
+                {/* Card Payment Option */}
                 <TouchableOpacity
-                  onPress={() => setQrVisible(true)} // Cambia esto si tienes lógica específica
+                  onPress={() => handlePaymentMethodSelect('card')}
                   className="bg-background p-4 ml-2 rounded-lg"
                 >
                   <Image
@@ -246,7 +180,7 @@ const PaymentOptionsModal: React.FC<PaymentModalProps> = ({
         </GestureHandlerRootView>
       </Animated.View>
 
-      {/* Modal anidado para QR */}
+      {/* QR Payment Modal */}
       <QrPaymentView
         visible={qrVisible}
         onClose={() => {
@@ -254,6 +188,17 @@ const PaymentOptionsModal: React.FC<PaymentModalProps> = ({
           onClose();
         }}
         paymentData={paymentData}
+      />
+
+      {/* Card Payment Modal */}
+      <CardPaymentView
+        visible={cardVisible}
+        onClose={() => {
+          setCardVisible(false);
+          onClose();
+        }}
+        paymentData={paymentData}
+        onPaymentSuccess={handlePaymentSuccess}
       />
     </Modal>
   );
